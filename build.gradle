@@ -24,6 +24,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.mysql:mysql-connector-j:9.2.0'
 	implementation 'org.jsoup:jsoup:1.18.3'
+    runtimeOnly 'com.h2database:h2:2.3.232'
+
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
