@@ -284,9 +284,8 @@ public class FLLRobotGameParser implements Parser {
 			}
 			magicValues.add(partialPoints);
 		});
-		// print collected magic value
-		// String collect = "{" + magicValues.stream().map(Arrays::toString).collect(Collectors.joining(", ")) + "}";
-		// System.out.println(collect);
+		var scoreDetails = new ScoreDetails(magicValues.toArray(new int[magicValues.size()][]));
+		System.out.println(scoreDetails);
 		// TODO: decide about whether to include gracious professionalism™️
 		Element graciousProfessionalismForm = core.expectForm("#ratingFormNoAjax");
 	}
