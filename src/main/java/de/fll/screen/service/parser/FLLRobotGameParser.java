@@ -116,7 +116,7 @@ public class FLLRobotGameParser implements Parser {
 				requestBuilder = modifier.apply(requestBuilder);
 			}
 			HttpRequest request = requestBuilder.build();
-			HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.ISO_8859_1));
+			HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 			return send.body();
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LoggerFactory.getLogger(FLLRobotGameParser.class).error(e.getMessage(), e);
