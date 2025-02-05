@@ -36,7 +36,7 @@ tasks.named('test') {
 
 spotless {
     java {
-        googleJavaFormat('1.25.2').aosp().reflowLongStrings().skipJavadocFormatting()
+        eclipse("4.28").configFile "spotless-style.xml"
         // fix formatting of type annotations
         formatAnnotations()
         trimTrailingWhitespace()

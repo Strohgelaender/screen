@@ -6,8 +6,6 @@ import jakarta.annotation.Nullable;
 
 public interface Parser {
 
-    @Nonnull
-    Competition parse(@Nullable Competition competition, int id, String user, String password);
-
-
+	@Nonnull
+	Competition parse(@Nullable Competition competition, int id, String user, String password);
 }
