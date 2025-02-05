@@ -1,6 +1,7 @@
 package de.fll.screen.service.parser;
 
 import de.fll.screen.model.*;
+import de.fll.screen.repository.CompetitionRepository;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
@@ -43,9 +44,15 @@ public class FLLRobotGameParser implements Parser {
 	@Value("${fll.environment}")
 	private String environment;
 
+	private final CompetitionRepository competitionRepository;
+
 	private static String local = LOCAL_DE;
 
 	private final Map<String, CookieManager> cookieManagers = new HashMap<>();
+
+	public FLLRobotGameParser(CompetitionRepository competitionRepository) {
+		this.competitionRepository = competitionRepository;
+	}
 
 	public Competition parse(Competition competition, int id) {
 		return parse(competition, id, username, password);
@@ -59,6 +66,7 @@ public class FLLRobotGameParser implements Parser {
 
 		if (competition == null) {
 			competition = new Competition();
+			competition.setInternalId(id);
 			cookieManager = new CookieManager();
 		} else {
 			cookieManager = cookieManagers.computeIfAbsent(competition.getName(), k -> new CookieManager());
@@ -78,6 +86,9 @@ public class FLLRobotGameParser implements Parser {
 		}
 		updatePairings(Jsoup.parse(rawPairingPage), competition);
 
+		if (competitionRepository != null) {
+			competition = competitionRepository.save(competition);
+		}
 		return competition;
 	}
 
@@ -113,7 +124,7 @@ public class FLLRobotGameParser implements Parser {
 				requestBuilder = modifier.apply(requestBuilder);
 			}
 			HttpRequest request = requestBuilder.build();
-			HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.ISO_8859_1));
+			HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 			return send.body();
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LoggerFactory.getLogger(FLLRobotGameParser.class).error(e.getMessage(), e);
@@ -296,7 +307,7 @@ public class FLLRobotGameParser implements Parser {
 
 	public static void main(String[] args) {
 		local = LOCAL_DE;
-		var parser = new FLLRobotGameParser();
+		var parser = new FLLRobotGameParser(null);
 		parser.environment = HOT_TEST;
 		Competition competition = parser.parse(null, 231, args[0], args[1]);
 		System.out.println("DONE");
