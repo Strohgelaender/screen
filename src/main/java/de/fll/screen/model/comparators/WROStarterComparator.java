@@ -16,13 +16,11 @@ public class WROStarterComparator implements Comparator<Team> {
 		t2Scores.sort(Comparator.comparing(Score::getPoints).reversed());
 
 		for (int i = 0; i < t1Scores.size(); i++) {
-			if (t1Scores.get(i).getPoints() != t2Scores.get(i).getPoints()) {
-				return Double.compare(t2Scores.get(i).getPoints(), t1Scores.get(i).getPoints());
-			} else if (t1Scores.get(i).getTime() != t2Scores.get(i).getTime()) {
-				return -Integer.compare(t1Scores.get(i).getTime(), t2Scores.get(i).getTime());
+			int compareWithTime = t1Scores.get(i).compareToWithTime(t2Scores.get(i));
+			if (compareWithTime != 0) {
+				return compareWithTime;
 			}
 		}
-
 		return 0;
 	}
 }
