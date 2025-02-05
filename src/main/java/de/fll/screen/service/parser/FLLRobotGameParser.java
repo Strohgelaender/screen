@@ -10,10 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -241,6 +238,7 @@ public class FLLRobotGameParser implements Parser {
 						}
 					});
 		}
+		// Test code for single match analysis tools
 		Elements allPairingsAllRounds = preliminaryPairings.select("a");
 		var pairing = allPairingsAllRounds.get(
 				ThreadLocalRandom.current().nextInt(allPairingsAllRounds.size()));
@@ -252,7 +250,45 @@ public class FLLRobotGameParser implements Parser {
 	private void checkMatch(String path, Competition competition) {
 		String match = requestPageAfterLogin(
 				cookieManagers.get(competition.getName()), environment + "/" + path);
-		System.out.println(match);
+		// System.out.println(match);
+		var core = Jsoup.parse(match);
+		Element ratingForm = core.expectForm("#ratingForm");
+		Elements tasks = ratingForm.selectFirst(".collaps-set").select("li");
+		List<int[]> magicValues = new ArrayList<>();
+		tasks.forEach(t -> {
+			// General Points
+			var head = t.selectFirst(".collaps-head.icon-right");
+			var title = head.selectFirst("h2").ownText();
+			var points = head.selectFirst(".status.task-points").selectFirst(".value").ownText();
+			if (points.isEmpty()) {
+				points = "0";
+			}
+			System.out.println(title + " : " + points + " points");
+			// DETAILS
+			var subTasks = t.selectFirst(".collaps-content").select(".sub-task.border-bottom.clearfix");
+
+			int[] partialPoints = new int[subTasks.size() + 1];
+			partialPoints[0] = Integer.parseInt(points);
+			for (int i = 0; i < subTasks.size(); i++) {
+				Element st = subTasks.get(i);
+				var stText = st.selectFirst(".label").selectFirst("strong").ownText();
+				var stPointsNode = st.selectFirst("[checked]");
+				String stPoints;
+				if (stPointsNode == null) {
+					stPoints = "0";
+				} else {
+					stPoints = stPointsNode.attr("value");
+				}
+				System.out.println(stText + " " + stPoints + " points");
+				partialPoints[i + 1] = Integer.parseInt(stPoints);
+			}
+			magicValues.add(partialPoints);
+		});
+		// print collected magic value
+		// String collect = "{" + magicValues.stream().map(Arrays::toString).collect(Collectors.joining(", ")) + "}";
+		// System.out.println(collect);
+		// TODO: decide about whether to include gracious professionalism™️
+		Element graciousProfessionalismForm = core.expectForm("#ratingFormNoAjax");
 	}
 
 	private String extractLink(Element element) {
@@ -261,7 +297,9 @@ public class FLLRobotGameParser implements Parser {
 
 	public static void main(String[] args) {
 		local = LOCAL_DE;
-		Competition competition = new FLLRobotGameParser().parse(null, 231, args[0], args[1]);
+		var parser = new FLLRobotGameParser();
+		parser.environment = HOT_TEST;
+		Competition competition = parser.parse(null, 231, args[0], args[1]);
 		System.out.println("DONE");
 	}
 }
