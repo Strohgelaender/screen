@@ -1,0 +1,22 @@
+services:
+  mysql:
+    container_name: fll-mysql
+    image: docker.io/library/mysql:8.4.0
+    volumes:
+      - mysql-data:/var/lib/mysql
+    # DO NOT use this default file for production systems!
+    env_file:
+      - ./default.env
+    ports:
+      - '127.0.0.1:3306:3306'
+    # expose the port to make it reachable docker internally even if the external port mapping changes
+    expose:
+      - '3306'
+    command: mysqld --lower_case_table_names=1 --tls-version='' --character_set_server=utf8mb4 --collation-server=utf8mb4_unicode_ci --explicit_defaults_for_timestamp --max_connections=100000
+    # mbind: Operation not permitted workaround for docker compose (see https://github.com/docker-library/mysql/issues/303)
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
+
+volumes:
+  mysql-data:
+    name: mysql-data
