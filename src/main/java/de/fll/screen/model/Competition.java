@@ -11,6 +11,9 @@ public class Competition {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
+	@Column(name = "internal_id", nullable = false)
+	private long internalId;
+
 	@Column(name = "name", nullable = false)
 	private String name;
 
@@ -31,5 +34,13 @@ public class Competition {
 
 	public Set<Category> getCategories() {
 		return categories;
+	}
+
+	public long getInternalId() {
+		return internalId;
+	}
+
+	public void setInternalId(long internalId) {
+		this.internalId = internalId;
 	}
 }
