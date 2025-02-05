@@ -65,4 +65,12 @@ public final class Category {
     public void setTeams(Set<Team> teams) {
         this.teams = teams;
     }
+
+	public void setCategoryScoring(CategoryScoring categoryScoring) {
+		this.categoryScoring = categoryScoring;
+	}
+
+	public CategoryScoring getCategoryScoring() {
+		return categoryScoring;
+	}
 }

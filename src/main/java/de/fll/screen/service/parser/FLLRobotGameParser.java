@@ -1,9 +1,6 @@
 package de.fll.screen.service.parser;
 
-import de.fll.screen.model.Category;
-import de.fll.screen.model.Competition;
-import de.fll.screen.model.Score;
-import de.fll.screen.model.Team;
+import de.fll.screen.model.*;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.jsoup.Jsoup;
@@ -175,6 +172,7 @@ public class FLLRobotGameParser implements Parser {
         category.setName(competition.getName());
         //TODO: make request to teams overview in order to retrieve tournament id
         category.setCompetition(competition);
+		category.setCategoryScoring(CategoryScoring.FLL_ROBOT_GAME);
         return category;
     }
 
