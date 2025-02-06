@@ -25,6 +25,14 @@ public class RunStatistics extends ArrayStatistics<RunStatistics> {
 				.toArray(double[][]::new));
 	}
 
+	public WrappedArrayStatistics numberOfFlawlessTasks() {
+		 throw new UnsupportedOperationException("Not implemented yet");
+	}
+
+	private boolean isFlawlessTask(int taskId, ScoreDetails scoreDetails) {
+		return scoreDetails.getScoreForTask(taskId) == subTaskMaxScores.apply(taskId)[0];
+	}
+
 	@Override
 	public RunStatistics merge(RunStatistics... other) {
 		var mergedData = Stream.concat(Stream.of(this), Arrays.stream(other))
@@ -32,6 +40,8 @@ public class RunStatistics extends ArrayStatistics<RunStatistics> {
 				.toArray(ScoreDetails[]::new);
 		return new RunStatistics(maxPerEntry, subTaskMaxScores, mergedData);
 	}
+
+
 
 	public double getMaxPerRound() {
 		return maxPerEntry;

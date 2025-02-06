@@ -1,6 +1,7 @@
 package de.fll.screen.service.statistics;
 
 import java.util.Arrays;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Stream;
 
 public class TaskStatistics extends ArrayStatistics<TaskStatistics> {
@@ -17,6 +18,10 @@ public class TaskStatistics extends ArrayStatistics<TaskStatistics> {
 	public SimpleArrayStatistics getSubTaskStatistics(int subTaskIndex) {
 		return new SimpleArrayStatistics(maxPerEntry[subTaskIndex], Arrays.stream(subTaskData)
 				.mapToDouble(a -> a[subTaskIndex]).toArray());
+	}
+
+	public WrappedArrayStatistics getSubTaskStatistics(int subTaskIndex, DoubleUnaryOperator scoreMapper) {
+		return new WrappedArrayStatistics(getSubTaskStatistics(subTaskIndex), scoreMapper);
 	}
 
 	@Override
