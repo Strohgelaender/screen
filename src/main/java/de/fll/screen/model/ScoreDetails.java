@@ -40,6 +40,10 @@ public class ScoreDetails {
 		this.detailedScores = detailedScores;
 	}
 
+	public int[][] getDetailedScores() {
+		return detailedScores;
+	}
+
 	@Override
 	public String toString() {
 		return "ScoreDetails{" +
