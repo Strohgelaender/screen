@@ -26,7 +26,7 @@ public class RunStatistics extends ArrayStatistics<RunStatistics> {
 	}
 
 	public WrappedArrayStatistics numberOfFlawlessTasks() {
-		 throw new UnsupportedOperationException("Not implemented yet");
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
 	private boolean isFlawlessTask(int taskId, ScoreDetails scoreDetails) {
@@ -40,8 +40,6 @@ public class RunStatistics extends ArrayStatistics<RunStatistics> {
 				.toArray(ScoreDetails[]::new);
 		return new RunStatistics(maxPerEntry, subTaskMaxScores, mergedData);
 	}
-
-
 
 	public double getMaxPerRound() {
 		return maxPerEntry;
