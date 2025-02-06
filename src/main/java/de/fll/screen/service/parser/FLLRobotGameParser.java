@@ -33,6 +33,7 @@ public class FLLRobotGameParser implements Parser {
 	private static final String LOCAL_EN = "/en";
 	private static final String LOGIN_PATH = "/login";
 	private static final String RG_SCORE_PATH = "/robot-game-score?tournament=";
+	private static final String COMPETITION_SELECTION_PATH = "/tournament?action=choose";
 	private static final String RG_PAIRING_PATH = "/tournament?tournament=";
 
 	@Value("${fll.username}")
@@ -56,6 +57,29 @@ public class FLLRobotGameParser implements Parser {
 
 	public Competition parse(Competition competition, int id) {
 		return parse(competition, id, username, password);
+	}
+
+	@Override
+	public List<String> getAvailableCompetitionIds(String user, String password) {
+
+		CookieManager cookieManager = new CookieManager();
+
+		var page = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(COMPETITION_SELECTION_PATH), user, password);
+		var doc = Jsoup.parse(page);
+		return doc.selectFirst(".link-set")
+				.select("li")
+				.stream()
+				.map(e -> e.selectFirst("a")
+						.attr("href"))
+				.map(s -> {
+					var args = s.split("\\?")[1];
+					return Arrays.stream(args.split("&"))
+							.map(a -> a.split("="))
+							.filter(a -> "tournament".equals(a[0]))
+							.map(a -> a[1])
+							.findFirst().orElse("");
+				}).filter(s -> !((String) s).isEmpty())
+				.toList();
 	}
 
 	@Nonnull
@@ -309,7 +333,8 @@ public class FLLRobotGameParser implements Parser {
 		local = LOCAL_DE;
 		var parser = new FLLRobotGameParser(null);
 		parser.environment = HOT_TEST;
-		Competition competition = parser.parse(null, 231, args[0], args[1]);
+		// Competition competition = parser.parse(null, 231, args[0], args[1]);
+		var res = parser.getAvailableCompetitionIds(args[0], args[1]);
 		System.out.println("DONE");
 	}
 }
