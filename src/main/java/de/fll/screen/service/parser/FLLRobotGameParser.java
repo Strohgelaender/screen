@@ -49,6 +49,7 @@ public class FLLRobotGameParser implements Parser {
 
 	private static String local = LOCAL_DE;
 
+	// Map usernames to cookie managers
 	private final Map<String, CookieManager> cookieManagers = new HashMap<>();
 
 	public FLLRobotGameParser(CompetitionRepository competitionRepository) {
@@ -62,7 +63,7 @@ public class FLLRobotGameParser implements Parser {
 	@Override
 	public List<String> getAvailableCompetitionIds(String user, String password) {
 
-		CookieManager cookieManager = new CookieManager();
+		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
 		var page = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(COMPETITION_SELECTION_PATH), user, password);
 		var doc = Jsoup.parse(page);
@@ -84,16 +85,12 @@ public class FLLRobotGameParser implements Parser {
 
 	@Nonnull
 	@Override
-	public Competition parse(
-			@Nullable Competition competition, int id, String user, String password) {
-		CookieManager cookieManager;
+	public Competition parse(@Nullable Competition competition, int id, String user, String password) {
+		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
 		if (competition == null) {
 			competition = new Competition();
 			competition.setInternalId(id);
-			cookieManager = new CookieManager();
-		} else {
-			cookieManager = cookieManagers.computeIfAbsent(competition.getName(), k -> new CookieManager());
 		}
 
 		String rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH) + id, user, password);
@@ -101,8 +98,6 @@ public class FLLRobotGameParser implements Parser {
 			return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
 		}
 		updateCompetition(Jsoup.parse(rawScorePage), competition);
-		// WE HATE COOKIES - save session cookie
-		cookieManagers.put(competition.getName(), cookieManager);
 
 		String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
 		if (rawPairingPage == null) {
@@ -282,9 +277,8 @@ public class FLLRobotGameParser implements Parser {
 		// TODO extract data from eval sheets
 	}
 
-	private void checkMatch(String path, Competition competition) {
-		String match = requestPageAfterLogin(
-				cookieManagers.get(competition.getName()), environment + "/" + path);
+	private void checkMatch(String path, Competition competition, String username) {
+		String match = requestPageAfterLogin(cookieManagers.get(username), environment + "/" + path);
 		// System.out.println(match);
 		var core = Jsoup.parse(match);
 		Element ratingForm = core.expectForm("#ratingForm");
