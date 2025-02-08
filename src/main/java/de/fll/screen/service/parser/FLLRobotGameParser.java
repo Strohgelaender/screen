@@ -49,7 +49,8 @@ public class FLLRobotGameParser implements Parser {
 
     private static String local = LOCAL_DE;
 
-    private final Map<String, CookieManager> cookieManagers = new HashMap<>();
+	// Map usernames to cookie managers
+	private final Map<String, CookieManager> cookieManagers = new HashMap<>();
 
     public FLLRobotGameParser(CompetitionRepository competitionRepository) {
         this.competitionRepository = competitionRepository;
@@ -62,7 +63,7 @@ public class FLLRobotGameParser implements Parser {
     @Override
     public List<String> getAvailableCompetitionIds(String user, String password) {
 
-        CookieManager cookieManager = new CookieManager();
+		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
         var page = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(makeTournamentSelectionPath()), user, password);
         var doc = Jsoup.parse(page);
@@ -82,27 +83,21 @@ public class FLLRobotGameParser implements Parser {
                 .toList();
     }
 
-    @Nonnull
-    @Override
-    public Competition parse(
-            @Nullable Competition competition, int id, String user, String password) {
-        CookieManager cookieManager;
+	@Nonnull
+	@Override
+	public Competition parse(@Nullable Competition competition, int id, String user, String password) {
+		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
-        if (competition == null) {
-            competition = new Competition();
-            competition.setInternalId(id);
-            cookieManager = new CookieManager();
-        } else {
-            cookieManager = cookieManagers.computeIfAbsent(competition.getName(), k -> new CookieManager());
-        }
+		if (competition == null) {
+			competition = new Competition();
+			competition.setInternalId(id);
+		}
 
-        String rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeTournamentURL(id), user, password);
-        if (rawScorePage == null) {
-            return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
-        }
-        updateCompetition(Jsoup.parse(rawScorePage), competition);
-        // WE HATE COOKIES - save session cookie
-        cookieManagers.put(competition.getName(), cookieManager);
+		String rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH) + id, user, password);
+		if (rawScorePage == null) {
+			return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
+		}
+		updateCompetition(Jsoup.parse(rawScorePage), competition);
 
         String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
         if (rawPairingPage == null) {
@@ -291,25 +286,24 @@ public class FLLRobotGameParser implements Parser {
         // TODO extract data from eval sheets
     }
 
-    private void checkMatch(String path, Competition competition) {
-        String match = requestPageAfterLogin(
-                cookieManagers.get(competition.getName()), environment + "/" + path);
-        // System.out.println(match);
-        var core = Jsoup.parse(match);
-        Element ratingForm = core.expectForm("#ratingForm");
-        Elements tasks = ratingForm.selectFirst(".collaps-set").select("li");
-        List<int[]> magicValues = new ArrayList<>();
-        tasks.forEach(t -> {
-            // General Points
-            var head = t.selectFirst(".collaps-head.icon-right");
-            var title = head.selectFirst("h2").ownText();
-            var points = head.selectFirst(".status.task-points").selectFirst(".value").ownText();
-            if (points.isEmpty()) {
-                points = "0";
-            }
-            System.out.println(title + " : " + points + " points");
-            // DETAILS
-            var subTasks = t.selectFirst(".collaps-content").select(".sub-task.border-bottom.clearfix");
+	private void checkMatch(String path, Competition competition, String username) {
+		String match = requestPageAfterLogin(cookieManagers.get(username), environment + "/" + path);
+		// System.out.println(match);
+		var core = Jsoup.parse(match);
+		Element ratingForm = core.expectForm("#ratingForm");
+		Elements tasks = ratingForm.selectFirst(".collaps-set").select("li");
+		List<int[]> magicValues = new ArrayList<>();
+		tasks.forEach(t -> {
+			// General Points
+			var head = t.selectFirst(".collaps-head.icon-right");
+			var title = head.selectFirst("h2").ownText();
+			var points = head.selectFirst(".status.task-points").selectFirst(".value").ownText();
+			if (points.isEmpty()) {
+				points = "0";
+			}
+			System.out.println(title + " : " + points + " points");
+			// DETAILS
+			var subTasks = t.selectFirst(".collaps-content").select(".sub-task.border-bottom.clearfix");
 
             int[] partialPoints = new int[subTasks.size() + 1];
             partialPoints[0] = Integer.parseInt(points);
