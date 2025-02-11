@@ -27,4 +27,9 @@ public enum CategoryScoring implements CategoryComparator {
 	public List<TeamDTO> assignRanks(Set<Team> teams) {
 		return this.categoryComparator.assignRanks(teams);
 	}
+
+	@Override
+	public Set<Integer> getHighlightIndices(Team team) {
+		return this.categoryComparator.getHighlightIndices(team);
+	}
 }

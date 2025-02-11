@@ -2,14 +2,18 @@ package de.fll.screen.model.comparators;
 
 import de.fll.screen.model.Score;
 import de.fll.screen.model.Team;
+
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 public class WROStarterComparator implements CategoryComparator {
 
 	@Override
 	public int compare(Team team1, Team team2) {
-		var t1Scores = team1.getScores();
-		var t2Scores = team2.getScores();
+		var t1Scores = new ArrayList<>(team1.getScores());
+		var t2Scores = new ArrayList<>(team2.getScores());
 
 		t1Scores.sort(Comparator.comparing(Score::getPoints).reversed());
 		t2Scores.sort(Comparator.comparing(Score::getPoints).reversed());
@@ -21,5 +25,18 @@ public class WROStarterComparator implements CategoryComparator {
 			}
 		}
 		return 0;
+	}
+
+	@Override
+	public Set<Integer> getHighlightIndices(Team team) {
+		List<Score> scores = new ArrayList<>(team.getScores());
+		scores.sort(Comparator.comparing(Score::getPoints).reversed());
+
+		for (int i = 0; i < scores.size(); i++) {
+			if (team.getScores().get(i).equals(scores.getFirst())) {
+				return Set.of(i);
+			}
+		}
+		return Set.of();
 	}
 }

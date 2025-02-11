@@ -27,7 +27,7 @@ export default function ServerDataPage() {
     }, []);
 
     return (
-        <div className="w-screen h-screen flex items-center justify-center bg-cover bg-center"
+        <div className="w-screen h-screen flex flex-col items-center justify-center bg-cover bg-center"
              style={{
                  backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
              }}
@@ -36,8 +36,8 @@ export default function ServerDataPage() {
                 ROBOT-GAME SCORE: {competition?.name?.toUpperCase()}
             </h1>
 
-            <div className="text-white text-l bg-black/50 p-4 rounded-lg">
-                <table>
+            <div className="text-white text-xl bg-black/50 p-4 rounded-lg">
+                <table className="w-full table border-separate table-auto text-sm text-left rtl:text-center text-white">
                     <thead>
                     <tr>
                         <th>Team</th>
@@ -51,9 +51,9 @@ export default function ServerDataPage() {
                     {competition?.categories[0].teams.map((team: Team) => (
                         <tr key={team.id}>
                             <td>{team.name}</td>
-                            <td>{team.scores[0]?.points}</td>
-                            <td>{team.scores[1]?.points}</td>
-                            <td>{team.scores[2]?.points}</td>
+                            <td style={{ background: team.scores[0]?.highlight ? 'blue' : 'none'}}>{team.scores[0]?.points}</td>
+                            <td style={{ background: team.scores[1]?.highlight ? 'blue' : 'none'}}>{team.scores[1]?.points}</td>
+                            <td style={{ background: team.scores[2]?.highlight ? 'blue' : 'none'}}>{team.scores[2]?.points}</td>
                             <td>{team.rank}</td>
                         </tr>
                     ))}

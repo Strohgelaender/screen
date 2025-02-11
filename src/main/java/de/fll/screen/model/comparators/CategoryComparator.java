@@ -10,6 +10,8 @@ import java.util.Set;
 
 public interface CategoryComparator extends Comparator<Team> {
 
+	Set<Integer> getHighlightIndices(Team team);
+
 	// Use the comparator to assign ranks to the teams
 	// The same rank is only assigned if the comparator returns 0
 	default List<TeamDTO> assignRanks(Set<Team> teams) {
@@ -20,13 +22,14 @@ public interface CategoryComparator extends Comparator<Team> {
 		int rank = 0;
 		for (int i = 0; i < sorted.size(); i++) {
 			Team team = sorted.get(i);
+			var highlightIndices = getHighlightIndices(team);
 			if (i > 0 && compare(sorted.get(i - 1), team) == 0) {
 				// Same rank as the previous one
-				teamDTOs.add(TeamDTO.of(team, rank));
+				teamDTOs.add(TeamDTO.of(team, rank, highlightIndices));
 			} else {
 				// New rank
 				rank = i + 1;
-				teamDTOs.add(TeamDTO.of(team, rank));
+				teamDTOs.add(TeamDTO.of(team, rank, highlightIndices));
 			}
 		}
 

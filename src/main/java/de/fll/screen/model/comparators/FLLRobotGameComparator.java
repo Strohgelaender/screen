@@ -13,8 +13,8 @@ public class FLLRobotGameComparator implements CategoryComparator {
 
 	@Override
 	public int compare(Team team1, Team team2) {
-		var t1Scores = getRelevantScores(team1.getScores());
-		var t2Scores = getRelevantScores(team2.getScores());
+		var t1Scores = new ArrayList<>(getRelevantScores(team1.getScores()));
+		var t2Scores = new ArrayList<>(getRelevantScores(team2.getScores()));
 
 		t1Scores.sort(Comparator.comparing(Score::getPoints).reversed());
 		t2Scores.sort(Comparator.comparing(Score::getPoints).reversed());
@@ -33,6 +33,19 @@ public class FLLRobotGameComparator implements CategoryComparator {
 	}
 
 	@Override
+	public Set<Integer> getHighlightIndices(Team team) {
+		var scores = getRelevantScores(team.getScores());
+		double bestScore = getBestScore(team);
+		// Highlight first occurrence of best score
+		for (int i = 0; i < scores.size(); i++) {
+			if (scores.get(i).getPoints() == bestScore) {
+				return Set.of(i);
+			}
+		}
+		return Set.of();
+	}
+
+	@Override
 	public List<TeamDTO> assignRanks(Set<Team> teams) {
 		// For the FLL, ranks are only determined by the best score
 		// We cannot use the comparator for this since it uses all scores, so this compares only the best score.
@@ -45,13 +58,14 @@ public class FLLRobotGameComparator implements CategoryComparator {
 
 		for (var team : sorted) {
 			double bestScore = getBestScore(team);
+			var highlightIndices = getHighlightIndices(team);
 			if (bestScore == previousScore) {
 				// Assign the same rank if the score is the same
-				teamDTOs.add(TeamDTO.of(team, rank));
+				teamDTOs.add(TeamDTO.of(team, rank, highlightIndices));
 			} else {
 				// Otherwise, assign a new rank
 				rank = rank + 1;
-				teamDTOs.add(TeamDTO.of(team, rank));
+				teamDTOs.add(TeamDTO.of(team, rank, highlightIndices));
 			}
 			previousScore = bestScore;
 		}
@@ -60,6 +74,6 @@ public class FLLRobotGameComparator implements CategoryComparator {
 	}
 
 	private double getBestScore(Team team) {
-		return team.getScores().stream().mapToDouble(Score::getPoints).max().orElse(-1);
+		return getRelevantScores(team.getScores()).stream().mapToDouble(Score::getPoints).max().orElse(-1);
 	}
 }
