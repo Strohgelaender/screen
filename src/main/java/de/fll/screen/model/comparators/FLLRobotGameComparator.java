@@ -2,10 +2,14 @@ package de.fll.screen.model.comparators;
 
 import de.fll.screen.model.Score;
 import de.fll.screen.model.Team;
+import de.fll.screen.web.dto.TeamDTO;
+
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
-public class FLLRobotGameComparator implements Comparator<Team> {
+public class FLLRobotGameComparator implements CategoryComparator {
 
 	@Override
 	public int compare(Team team1, Team team2) {
@@ -26,5 +30,36 @@ public class FLLRobotGameComparator implements Comparator<Team> {
 
 	private List<Score> getRelevantScores(List<Score> scores) {
 		return scores.subList(0, 3);
+	}
+
+	@Override
+	public List<TeamDTO> assignRanks(Set<Team> teams) {
+		// For the FLL, ranks are only determined by the best score
+		// We cannot use the comparator for this since it uses all scores, so this compares only the best score.
+
+		List<Team> sorted = new ArrayList<>(teams);
+		sorted.sort(this);
+		List<TeamDTO> teamDTOs = new ArrayList<>(teams.size());
+		int rank = 0;
+		double previousScore = -1;
+
+		for (var team : sorted) {
+			double bestScore = getBestScore(team);
+			if (bestScore == previousScore) {
+				// Assign the same rank if the score is the same
+				teamDTOs.add(TeamDTO.of(team, rank));
+			} else {
+				// Otherwise, assign a new rank
+				rank = rank + 1;
+				teamDTOs.add(TeamDTO.of(team, rank));
+			}
+			previousScore = bestScore;
+		}
+
+		return teamDTOs;
+	}
+
+	private double getBestScore(Team team) {
+		return team.getScores().stream().mapToDouble(Score::getPoints).max().orElse(-1);
 	}
 }

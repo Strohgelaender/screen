@@ -10,6 +10,6 @@ public interface CompetitionRepository extends CrudRepository<Competition, Long>
 
 	boolean existsByInternalId(long internalId);
 
-	@EntityGraph(attributePaths = "categories")
+	@EntityGraph(attributePaths = {"categories", "categories.teams"})
 	Competition findByInternalId(long internalId);
 }

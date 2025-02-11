@@ -4,7 +4,7 @@ import de.fll.screen.model.Score;
 import de.fll.screen.model.Team;
 import java.util.Comparator;
 
-public class WROStarterComparator implements Comparator<Team> {
+public class WROStarterComparator implements CategoryComparator {
 
 	@Override
 	public int compare(Team team1, Team team2) {

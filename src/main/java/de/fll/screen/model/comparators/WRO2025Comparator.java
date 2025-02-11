@@ -2,9 +2,8 @@ package de.fll.screen.model.comparators;
 
 import de.fll.screen.model.Score;
 import de.fll.screen.model.Team;
-import java.util.Comparator;
 
-public class WRO2025Comparator implements Comparator<Team> {
+public class WRO2025Comparator implements CategoryComparator {
 
 	@Override
 	public int compare(Team t1, Team t2) {
