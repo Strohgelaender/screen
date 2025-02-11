@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {Competition} from "../models/competition";
 import {Team} from "../models/team";
+import {Score} from "../models/score";
 
 export default function ServerDataPage() {
     const [competition, setCompetition] = useState<Competition | null>(null);
@@ -12,19 +13,21 @@ export default function ServerDataPage() {
     useEffect(() => {
         fetch("http://localhost:8080/images/Hintergrund.png")
             .then((response) => response.blob())
-            .then((blob) => {
-                const imageUrl = URL.createObjectURL(blob);
-                setBackgroundImage(imageUrl);
-            })
+            .then((blob) => setBackgroundImage(URL.createObjectURL(blob)))
             .catch((error) => console.error("Error loading background image:", error));
     }, []);
 
     useEffect(() => {
         fetch("http://localhost:8080/api/parse")
             .then((response) => response.json())
-            .then((data) => setCompetition(data))
+            .then(setCompetition)
             .catch((error) => setError(error.message));
     }, []);
+
+    function renderScoreCell(score: Score, index: number) {
+        const background = score.highlight ? 'blue' : 'none';
+        return <td key={index} style={{ background }}>{score.points}</td>;
+    }
 
     return (
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-cover bg-center"
@@ -51,9 +54,7 @@ export default function ServerDataPage() {
                     {competition?.categories[0].teams.map((team: Team) => (
                         <tr key={team.id}>
                             <td>{team.name}</td>
-                            <td style={{ background: team.scores[0]?.highlight ? 'blue' : 'none'}}>{team.scores[0]?.points}</td>
-                            <td style={{ background: team.scores[1]?.highlight ? 'blue' : 'none'}}>{team.scores[1]?.points}</td>
-                            <td style={{ background: team.scores[2]?.highlight ? 'blue' : 'none'}}>{team.scores[2]?.points}</td>
+                            {team.scores.map((score, index) => renderScoreCell(score, index))}
                             <td>{team.rank}</td>
                         </tr>
                     ))}
