@@ -56,11 +56,12 @@ public class FLLRobotGameComparator implements CategoryComparator {
 		int rank = 0;
 		double previousScore = -1;
 
-		for (var team : sorted) {
+		for (int i = 0; i < sorted.size(); i++) {
+			Team team = sorted.get(i);
 			double bestScore = getBestScore(team);
 			var highlightIndices = getHighlightIndices(team);
 			if (bestScore != previousScore) {
-				rank++;
+				rank = i + 1;
 			}
 			List<TeamDTO.ScoreDTO> scores = getRelevantScores(team.getScores()).stream()
 					.map(score -> new TeamDTO.ScoreDTO(score.getPoints(), score.getTime(), highlightIndices.contains(team.getScores().indexOf(score))))
