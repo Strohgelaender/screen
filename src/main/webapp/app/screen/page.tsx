@@ -5,10 +5,11 @@ import {Competition} from "../models/competition";
 import {Team} from "../models/team";
 import {Score} from "../models/score";
 
-export default function ServerDataPage() {
+export default function ScoreScreenPage() {
     const [competition, setCompetition] = useState<Competition | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
         fetch("http://localhost:8080/images/Hintergrund.png")
@@ -24,10 +25,23 @@ export default function ServerDataPage() {
             .catch((error) => setError(error.message));
     }, []);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentIndex((prevIndex) => {
+                if (!competition || prevIndex + 8 > competition.categories[0].teams.length) return 0;
+                return (prevIndex + 8) % competition.categories[0].teams.length;
+            });
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, [competition]);
+
     function renderScoreCell(score: Score, index: number) {
         const background = score.highlight ? 'blue' : 'none';
         return <td className="px-4 border-t border-r border-l border-white text-center" key={index} style={{ background }}>{score.points}</td>;
     }
+
+    const teams = competition?.categories[0].teams;
 
     return (
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-cover bg-center"
@@ -51,7 +65,7 @@ export default function ServerDataPage() {
                     </tr>
                     </thead>
                     <tbody>
-                    {competition?.categories[0].teams.slice(0, 8).map((team: Team) => (
+                    {teams?.slice(currentIndex, Math.min(currentIndex + 8, teams?.length)).map((team: Team) => (
                         <tr key={team.id}>
                             <td className="px-4 py-2 border-t border-white">{team.name}</td>
                             {team.scores.map((score, index) => renderScoreCell(score, index))}
