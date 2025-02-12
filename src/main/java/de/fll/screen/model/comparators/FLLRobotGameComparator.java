@@ -63,6 +63,11 @@ public class FLLRobotGameComparator implements CategoryComparator {
 			if (bestScore != previousScore) {
 				rank = i + 1;
 			}
+			if (rank != 1 && bestScore <= 0) {
+				// Skip teams with 0 points
+				// Except when everyone has 0 points (all rank 1)
+				continue;
+			}
 			List<TeamDTO.ScoreDTO> scores = getRelevantScores(team.getScores()).stream()
 					.map(score -> new TeamDTO.ScoreDTO(score.getPoints(), score.getTime(), highlightIndices.contains(team.getScores().indexOf(score))))
 					.toList();

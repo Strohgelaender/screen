@@ -23,14 +23,16 @@ public interface CategoryComparator extends Comparator<Team> {
 		for (int i = 0; i < sorted.size(); i++) {
 			Team team = sorted.get(i);
 			var highlightIndices = getHighlightIndices(team);
-			if (i > 0 && compare(sorted.get(i - 1), team) == 0) {
-				// Same rank as the previous one
-				teamDTOs.add(TeamDTO.of(team, rank, highlightIndices));
-			} else {
+			if (i == 0 || compare(sorted.get(i - 1), team) != 0) {
 				// New rank
 				rank = i + 1;
-				teamDTOs.add(TeamDTO.of(team, rank, highlightIndices));
 			}
+			if (rank != 1 && team.getScores().stream().noneMatch(score -> score.getPoints() > 0)) {
+				// Skip teams with 0 points
+				// Except when everyone has 0 points (all rank 1)
+				continue;
+			}
+			teamDTOs.add(TeamDTO.of(team, rank, highlightIndices));
 		}
 
 		return teamDTOs;
