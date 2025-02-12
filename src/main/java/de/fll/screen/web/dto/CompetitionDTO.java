@@ -2,9 +2,7 @@ package de.fll.screen.web.dto;
 
 import de.fll.screen.model.Category;
 import de.fll.screen.model.Competition;
-import de.fll.screen.model.Team;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
