@@ -39,7 +39,7 @@ export default function ServerDataPage() {
                 ROBOT-GAME SCORE: {competition?.name?.toUpperCase()}
             </h1>
 
-            <div className="text-white text-4xl bg-black/50 rounded-lg p-20">
+            <div className="text-white text-5xl bg-black/50 rounded-lg p-20">
                 <table className="w-full border-collapse table-fixed text-left text-white ">
                     <thead>
                     <tr>
@@ -61,6 +61,7 @@ export default function ServerDataPage() {
                     </tbody>
                 </table>
             </div>
+            {error && <div className="text-red-500">{error}</div>}
         </div>
     );
 }

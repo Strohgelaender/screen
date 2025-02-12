@@ -20,7 +20,7 @@ public class SecurityConfig {
 		http.authorizeHttpRequests(
 				requests -> requests.requestMatchers("/", "/api/parse")
 						.permitAll()
-						.requestMatchers("/images/**").permitAll()
+						.requestMatchers("/**").permitAll()
 						.anyRequest()
 						.authenticated())
 				.logout(LogoutConfigurer::permitAll);

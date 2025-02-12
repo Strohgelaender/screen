@@ -1,3 +1,8 @@
+src/main/resources/static
+!src/main/resources/static/images
+src/main/webapp/node-*
+
+
 HELP.md
 .gradle
 build/

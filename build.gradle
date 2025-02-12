@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.4.2'
 	id 'io.spring.dependency-management' version '1.1.7'
     id 'com.diffplug.spotless' version '7.0.2'
+	id 'com.github.node-gradle.node' version '7.1.0'
 }
 
 group = 'de.fll'
@@ -31,6 +32,34 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+node {
+	download = true
+	npmVersion = '11.1.0'
+	version = '22.11.0'
+	workDir = file("${projectDir}/src/main/webapp")
+}
+
+tasks.register('appNpmInstall', NpmTask) {
+	description = "read packge.json and install all jars"
+	workingDir = file("${project.projectDir}/src/main/webapp")
+	args = ["install"]
+}
+tasks.register('appNpmBuild', NpmTask) {
+	description = "Builds client application"
+	workingDir = file("${project.projectDir}/src/main/webapp")
+	args = ["run", "build"]
+}
+
+tasks.register('copyClientFiles', Copy) {
+	from "$projectDir/src/main/webapp/out/"
+	into "$projectDir/src/main/resources/static"
+}
+
+appNpmBuild.dependsOn appNpmInstall
+copyClientFiles.dependsOn appNpmBuild
+compileJava.dependsOn copyClientFiles
+processResources.dependsOn copyClientFiles
 
 tasks.named('test') {
 	useJUnitPlatform()
