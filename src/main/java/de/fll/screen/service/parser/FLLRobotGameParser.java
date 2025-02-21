@@ -97,15 +97,20 @@ public class FLLRobotGameParser implements Parser {
 			competition.setInternalId(id);
 		}
 
+		// Beim Schiri Login hat der Redirect nicht funktioniert, daher nutzten wir den bestehendne Cookie um direkt auf die Seite zu navigieren.
+		// TODO: Erkennen wann der Cookie abläuft und dann erneut anmelden.
 		String rawScorePage;
 		if (!loginNeeded) {
-			rawScorePage = executeRequest(cookieManager, makeTournamentURL(id));
+			rawScorePage = executeRequest(cookieManager, makeURL(RG_SCORE_PATH + id));
 		} else {
-			rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeTournamentURL(id), user, password);
+			rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH + id), user, password);
 		}
 		if (rawScorePage == null) {
 			return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
 		}
+
+		// Check if the result is reasonable (i.e. not a login page (wrong credentials) or choose competition page)
+
 		updateCompetition(Jsoup.parse(rawScorePage), competition);
 
 		String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
@@ -166,10 +171,6 @@ public class FLLRobotGameParser implements Parser {
 
 	private String makeURL(String path) {
 		return environment + local + path;
-	}
-
-	private String makeTournamentURL(int id) {
-		return makeURL(RG_SCORE_PATH) + id;
 	}
 
 	private String makeTournamentSelectionPath() {
