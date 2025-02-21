@@ -60,6 +60,10 @@ public class FLLRobotGameParser implements Parser {
 		return parse(competition, id, username, password);
 	}
 
+	public List<String> getAvailableCompetitionIds() {
+		return getAvailableCompetitionIds(username, password);
+	}
+
 	@Override
 	public List<String> getAvailableCompetitionIds(String user, String password) {
 
@@ -85,6 +89,7 @@ public class FLLRobotGameParser implements Parser {
 	@Nonnull
 	@Override
 	public Competition parse(@Nullable Competition competition, int id, String user, String password) {
+		boolean loginNeeded = !cookieManagers.containsKey(user);
 		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
 		if (competition == null) {
@@ -92,7 +97,12 @@ public class FLLRobotGameParser implements Parser {
 			competition.setInternalId(id);
 		}
 
-		String rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH) + id, user, password);
+		String rawScorePage;
+		if (!loginNeeded) {
+			rawScorePage = executeRequest(cookieManager, makeTournamentURL(id));
+		} else {
+			rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeTournamentURL(id), user, password);
+		}
 		if (rawScorePage == null) {
 			return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
 		}
@@ -159,7 +169,7 @@ public class FLLRobotGameParser implements Parser {
 	}
 
 	private String makeTournamentURL(int id) {
-		return makeURL(RG_SCORE_PATH) + id + "\n";
+		return makeURL(RG_SCORE_PATH) + id;
 	}
 
 	private String makeTournamentSelectionPath() {
@@ -224,10 +234,12 @@ public class FLLRobotGameParser implements Parser {
 
 	private void writeCompetitionTitle(Document doc, Competition competition) {
 		String competitionTitle = Objects.requireNonNull(doc.selectFirst(".page-title"), "Could not find Title Element!" + System.lineSeparator() + doc)
-				.text()
-				.split(":")[1]
-				.strip();
-		competition.setName(competitionTitle);
+				.text();
+		String[] split = competitionTitle.split(":");
+		if (split.length > 1) {
+			String title = split[1].strip();
+			competition.setName(title);
+		}
 	}
 
 	private Category generateCategory(Competition competition) {
@@ -326,7 +338,7 @@ public class FLLRobotGameParser implements Parser {
 		parser.environment = HOT_LIVE;
 		// Competition competition = parser.parse(null, 231, args[0], args[1]);
 		var res = parser.getAvailableCompetitionIds(args[0], args[1]);
-		System.out.println("res");
+		System.out.println("Available Competitions: " + res);
 		Set<Competition> collect = res.stream().mapToInt(r -> Integer.parseInt(r))
 				.mapToObj(i -> parser.parse(null, i, args[0], args[1]))
 				.collect(Collectors.toSet());

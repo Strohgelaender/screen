@@ -27,9 +27,16 @@ public class ParserRessource {
 
 	@GetMapping("/api/parse")
 	public CompetitionDTO parse() {
-		long id = 231;
+		int id = 0;
 		/* if (competitionRepository.existsByInternalId(id)) { return competitionRepository.findByInternalId(id); } */
-		Competition competition = parser.parse(null, 231);
+		var competitions = parser.getAvailableCompetitionIds();
+		if (competitions.size() == 1) {
+			id = Integer.parseInt(competitions.get(0));
+		} else {
+			// TODO
+			return null;
+		}
+		Competition competition = parser.parse(null, id);
 		return CompetitionDTO.of(competition);
 	}
 }
