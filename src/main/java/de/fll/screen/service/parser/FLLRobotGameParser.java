@@ -101,7 +101,7 @@ public class FLLRobotGameParser implements Parser {
 		// TODO: Erkennen wann der Cookie abläuft und dann erneut anmelden.
 		String rawScorePage;
 		if (!loginNeeded) {
-			rawScorePage = executeRequest(cookieManager, makeURL(RG_SCORE_PATH + id));
+			rawScorePage = requestPageAfterLogin(cookieManager, makeURL(RG_SCORE_PATH + id));
 		} else {
 			rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH + id), user, password);
 		}
@@ -109,9 +109,19 @@ public class FLLRobotGameParser implements Parser {
 			return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
 		}
 
-		// Check if the result is reasonable (i.e. not a login page (wrong credentials) or choose competition page)
+		Document pageDocument = Jsoup.parse(rawScorePage);
 
-		updateCompetition(Jsoup.parse(rawScorePage), competition);
+		// Check if the result is reasonable (i.e. not a login page (wrong credentials) or choose competition page)
+		if (getPageTitle(pageDocument).equals("Wettbewerb auswählen")) {
+			// Load scores page again
+			rawScorePage = requestPageAfterLogin(cookieManager, makeURL(RG_SCORE_PATH + id));
+			if (rawScorePage == null) {
+				return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
+			}
+			pageDocument = Jsoup.parse(rawScorePage);
+		}
+
+		updateCompetition(pageDocument, competition);
 
 		String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
 		if (rawPairingPage == null) {
@@ -233,9 +243,13 @@ public class FLLRobotGameParser implements Parser {
 		return score;
 	}
 
-	private void writeCompetitionTitle(Document doc, Competition competition) {
-		String competitionTitle = Objects.requireNonNull(doc.selectFirst(".page-title"), "Could not find Title Element!" + System.lineSeparator() + doc)
+	private String getPageTitle(Document doc) {
+		return Objects.requireNonNull(doc.selectFirst(".page-title"), "Could not find Title Element!" + System.lineSeparator() + doc)
 				.text();
+	}
+
+	private void writeCompetitionTitle(Document doc, Competition competition) {
+		String competitionTitle = getPageTitle(doc);
 		String[] split = competitionTitle.split(":");
 		if (split.length > 1) {
 			String title = split[1].strip();
