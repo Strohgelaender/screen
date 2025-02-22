@@ -31,6 +31,10 @@ export default function ScoreScreenPage() {
             .then((response) => response.json())
             .then((competition) => {
                 setCompetition(competition);
+                if (!competition?.categories?.length) {
+                    setError("No scores found for this competition");
+                    return;
+                }
                 const teams = competition.categories[0].teams;
                 let pages = 3;
                 if (teams.length < 8) {
@@ -71,12 +75,12 @@ export default function ScoreScreenPage() {
     const teams = competition?.categories[0].teams;
 
     return (
-            <div className="w-screen h-screen flex flex-col items-center justify-center bg-cover bg-center"
+            <div className="w-screen h-screen flex flex-col items-center justify-start bg-cover bg-center"
                  style={{
                      backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
                  }}
             >
-                <h1 className="text-white text-4xl font-bold bg-black/50 p-4 rounded-lg">
+                <h1 className="text-white text-4xl font-bold bg-black/50 px-4 py-12 rounded-lg">
                     ROBOT-GAME SCORE: {competition?.name?.toUpperCase()}
                 </h1>
 
