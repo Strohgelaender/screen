@@ -60,12 +60,12 @@ public class FLLRobotGameParser implements Parser {
 		return parse(competition, id, username, password);
 	}
 
-	public List<String> getAvailableCompetitionIds() {
-		return getAvailableCompetitionIds(username, password);
+	public List<String> getOwnCompetitionIds() {
+		return getOwnCompetitionIds(username, password);
 	}
 
 	@Override
-	public List<String> getAvailableCompetitionIds(String user, String password) {
+	public List<String> getOwnCompetitionIds(String user, String password) {
 
 		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
@@ -338,7 +338,7 @@ public class FLLRobotGameParser implements Parser {
 		var parser = new FLLRobotGameParser(null);
 		parser.environment = HOT_LIVE;
 		// Competition competition = parser.parse(null, 231, args[0], args[1]);
-		var res = parser.getAvailableCompetitionIds(args[0], args[1]);
+		var res = parser.getOwnCompetitionIds(args[0], args[1]);
 		System.out.println("Available Competitions: " + res);
 		Set<Competition> collect = res.stream().mapToInt(r -> Integer.parseInt(r))
 				.mapToObj(i -> parser.parse(null, i, args[0], args[1]))
