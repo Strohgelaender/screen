@@ -138,9 +138,9 @@ export default function ScoreScreenPage() {
                     </table>
                 </div>
                 {showFooter &&
-                <footer className="bg-white w-full flex justify-center items-center" style={{height: "15vh", position: "absolute", bottom: 0}} id={"screenFooter"}>
+                <footer className="bg-white w-full flex justify-evenly items-center" style={{height: "15vh", position: "absolute", bottom: 0}} id={"screenFooter"}>
                     {footerImages.map((image) => (
-                        <img src={BASE_URL + image} key={image} className="h-20" style={{maxHeight: "12vh"}}/>
+                        <img src={BASE_URL + image} key={image} className="h-18" style={{maxHeight: "13vh"}}/>
                     ))}
                 </footer> }
             </div>
