@@ -1,5 +1,5 @@
 src/main/resources/static
-!src/main/resources/static/images
+!src/main/resources/static/images/**/*
 src/main/webapp/node-*
 
 
