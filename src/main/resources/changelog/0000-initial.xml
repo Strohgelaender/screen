@@ -82,5 +82,31 @@
                     type="CLOB"/>
         </createTable>
     </changeSet>
+    <changeSet id="0000-9" author="Lucas">
+        <createTable tableName="footer_images">
+            <column name="screen_settings_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="images" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="0000-10" author="Lucas">
+        <createTable tableName="screen_settings">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_screen_settings"/>
+            </column>
+            <column name="show_footer" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="background_image" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="0000-11" author="Lucas">
+        <addForeignKeyConstraint baseColumnNames="screen_settings_id" baseTableName="footer_images"
+                                 constraintName="fk_footer_images_on_screen_settings" referencedColumnNames="id"
+                                 referencedTableName="screen_settings"/>
+    </changeSet>
 
 </databaseChangeLog>

@@ -11,6 +11,8 @@ export default function ScoreScreenPage() {
     const rawId = searchParams.get("id") ?? "348";
     const id = parseInt(rawId, 10);
 
+    const BASE_URL = "http://localhost:8080";
+
 
     const [competition, setCompetition] = useState<Competition | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -19,18 +21,16 @@ export default function ScoreScreenPage() {
 
     const [teamsPerPage, setTeamsPerPage] = useState(8);
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-    const [showFooter] = useState(true);
+    const [showFooter, setShowFooter] = useState(true);
+    const [footerImages, setFooterImages] = useState<string[]>([]);
 
 
     useEffect(() => {
-        fetch("http://localhost:8080/images/Hintergrund.png")
-            .then((response) => response.blob())
-            .then((blob) => setBackgroundImage(URL.createObjectURL(blob)))
-            .catch((error) => console.error("Error loading background image:", error));
-    }, []);
+        fetchBackgroundImage("/images/Hintergrund.png");
+    }, [BASE_URL]);
 
     useEffect(() => {
-        fetch("http://localhost:8080/api/parse?id=" + id)
+        fetch(BASE_URL + "/api/parse?id=" + id)
             .then((response) => response.json())
             .then((competition) => {
                 setCompetition(competition);
@@ -56,7 +56,27 @@ export default function ScoreScreenPage() {
                 setTeamsPerPage(perPage);
             })
             .catch((error) => setError(error.message));
-    }, [id]);
+    }, [id, BASE_URL]);
+
+    useEffect(() => {
+        fetch(BASE_URL + "/api/settings?id=" + id)
+            .then((response) => response.json())
+            .then((settings) => {
+                if (settings?.teamsPerPage) {
+                    setTeamsPerPage(settings.teamsPerPage);
+                }
+                if (settings?.showFooter !== undefined) {
+                    setShowFooter(settings.showFooter);
+                }
+                if (settings?.backgroundImage) {
+                  fetchBackgroundImage(settings.backgroundImage);
+                }
+                if (settings?.footerImages) {
+                    setFooterImages(settings.footerImages);
+                }
+            })
+            .catch((error) => console.error("Error loading settings:", error));
+    }, [BASE_URL]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -68,6 +88,13 @@ export default function ScoreScreenPage() {
 
         return () => clearInterval(interval);
     }, [competition, teamsPerPage]);
+
+    function fetchBackgroundImage(immageUrl: string) {
+        fetch(BASE_URL + immageUrl)
+            .then((response) => response.blob())
+            .then((blob) => setBackgroundImage(URL.createObjectURL(blob)))
+            .catch((error) => console.error("Error loading background image:", error));
+    }
 
     function renderScoreCell(score: Score, index: number) {
         const background = score.highlight ? 'blue' : 'none';
@@ -112,7 +139,9 @@ export default function ScoreScreenPage() {
                 </div>
                 {showFooter &&
                 <footer className="bg-white w-full flex justify-center items-center" style={{height: "15vh", position: "absolute", bottom: 0}} id={"screenFooter"}>
-                    <img src="http://localhost:8080/images/FLL-RGB_Challenge-horiz-full-color.png" alt="First Lego League Logo" className="h-20" style={{maxHeight: "12vh"}}/>
+                    {footerImages.map((image) => (
+                        <img src={BASE_URL + image} key={image} className="h-20" style={{maxHeight: "12vh"}}/>
+                    ))}
                 </footer> }
             </div>
     );
