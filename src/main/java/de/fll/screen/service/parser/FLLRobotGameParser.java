@@ -35,6 +35,7 @@ public class FLLRobotGameParser implements Parser {
 	private static final String RG_SCORE_PATH = "/robot-game-score?tournament=";
 	private static final String COMPETITION_SELECTION_PATH_TEMPLATE = "/tournament%s?action=choose";
 	private static final String RG_PAIRING_PATH = "/tournament?tournament=";
+	private static final boolean PARSE_PAIRINGS = false;
 
 	@Value("${fll.username}")
 	private String username;
@@ -123,11 +124,13 @@ public class FLLRobotGameParser implements Parser {
 
 		updateCompetition(pageDocument, competition);
 
-		String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
-		if (rawPairingPage == null) {
-			return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
+		if (PARSE_PAIRINGS) {
+			String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
+			if (rawPairingPage == null) {
+				return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
+			}
+			updatePairings(Jsoup.parse(rawPairingPage), competition);
 		}
-		updatePairings(Jsoup.parse(rawPairingPage), competition);
 
 		if (competitionRepository != null) {
 			competition = competitionRepository.save(competition);
