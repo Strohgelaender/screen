@@ -14,9 +14,12 @@ export default function ScoreScreenPage() {
 
     const [competition, setCompetition] = useState<Competition | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+
     const [currentIndex, setCurrentIndex] = useState(0);
+
     const [teamsPerPage, setTeamsPerPage] = useState(8);
+    const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+    const [showFooter] = useState(true);
 
 
     useEffect(() => {
@@ -85,6 +88,7 @@ export default function ScoreScreenPage() {
                 </h1>
 
                 <div className="text-white text-5xl bg-black/50 rounded-lg p-20">
+                    {error && <div className="text-red-500">{error}</div>}
                     <table className="w-full border-collapse table-fixed text-left text-white ">
                         <thead>
                         <tr>
@@ -106,7 +110,10 @@ export default function ScoreScreenPage() {
                         </tbody>
                     </table>
                 </div>
-                {error && <div className="text-red-500">{error}</div>}
+                {showFooter &&
+                <footer className="bg-white w-full flex justify-center items-center" style={{height: "15vh", position: "absolute", bottom: 0}} id={"screenFooter"}>
+                    <img src="http://localhost:8080/images/FLL-RGB_Challenge-horiz-full-color.png" alt="First Lego League Logo" className="h-20" style={{maxHeight: "12vh"}}/>
+                </footer> }
             </div>
     );
 }
