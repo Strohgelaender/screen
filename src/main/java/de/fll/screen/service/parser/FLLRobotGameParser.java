@@ -222,6 +222,7 @@ public class FLLRobotGameParser implements Parser {
 					.mapToInt(Integer::parseInt)
 					.boxed()
 					.collect(Collectors.toList());
+			// Index 3 = "Beste Vorrunde"
 			scores.remove(3);
 
 			System.out.println("Name: " + name + ", Team: " + teamId + ", Scores: " + scores);

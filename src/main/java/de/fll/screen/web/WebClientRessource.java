@@ -15,4 +15,14 @@ public class WebClientRessource {
 	public String screen() {
 		return "forward:/screen.html";
 	}
+
+	@GetMapping("/qf")
+	public String qf() {
+		return "forward:/qf.html";
+	}
+
+	@GetMapping("/quarter")
+	public String quarter() {
+		return "forward:/quarter.html";
+	}
 }

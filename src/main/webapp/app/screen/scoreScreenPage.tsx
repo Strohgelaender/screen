@@ -5,14 +5,16 @@ import { useEffect, useState} from "react";
 import {Competition} from "../models/competition";
 import {Score} from "../models/score";
 import {Team} from "../models/team";
+import Footer from "../components/Footer";
+import {ScreenSettings} from "../models/screenSettings";
+import {ScreenService} from "../service/ScreenService";
 
 export default function ScoreScreenPage() {
     const searchParams = useSearchParams()
     const rawId = searchParams.get("id") ?? "348";
     const id = parseInt(rawId, 10);
 
-    const BASE_URL = "http://localhost:8080";
-
+    const screenService = new ScreenService();
 
     const [competition, setCompetition] = useState<Competition | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -21,62 +23,31 @@ export default function ScoreScreenPage() {
 
     const [teamsPerPage, setTeamsPerPage] = useState(8);
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-    const [showFooter, setShowFooter] = useState(true);
-    const [footerImages, setFooterImages] = useState<string[]>([]);
-
+    const [settings, setSettings] = useState<ScreenSettings | null>(null);
 
     useEffect(() => {
-        fetchBackgroundImage("/images/Hintergrund.png");
-    }, [BASE_URL]);
-
-    useEffect(() => {
-        fetch(BASE_URL + "/api/parse?id=" + id)
-            .then((response) => response.json())
+        screenService.loadCompetition(id)
             .then((competition) => {
                 setCompetition(competition);
-                if (!competition?.categories?.length) {
-                    setError("No scores found for this competition");
-                    return;
-                }
-                const teams = competition.categories[0].teams;
-                let pages = 3;
-                if (teams.length < 8) {
-                    pages = 1;
-                } else if (teams.length < 16) {
-                    pages = 2;
-                }
-                let perPage = Math.ceil(teams.length / pages);
-                let teamsLastPage = teams.length % perPage;
-
-                while (teamsLastPage > 0 && teamsLastPage < 4 && teams.length > 8) {
-                    // To avoid a page with less than 4 teams, we reduce the number of teams per page
-                    perPage--;
-                    teamsLastPage = teams.length % perPage;
-                }
-                setTeamsPerPage(perPage);
+                setTeamsPerPage(screenService.calculateTeamsPerPage(competition));
             })
             .catch((error) => setError(error.message));
-    }, [id, BASE_URL]);
+    }, [id]);
 
     useEffect(() => {
-        fetch(BASE_URL + "/api/settings?id=" + id)
-            .then((response) => response.json())
+        screenService.loadScreenSettings(id)
             .then((settings) => {
+                setSettings(settings);
                 if (settings?.teamsPerPage) {
                     setTeamsPerPage(settings.teamsPerPage);
                 }
-                if (settings?.showFooter !== undefined) {
-                    setShowFooter(settings.showFooter);
-                }
                 if (settings?.backgroundImage) {
-                  fetchBackgroundImage(settings.backgroundImage);
-                }
-                if (settings?.footerImages) {
-                    setFooterImages(settings.footerImages);
+                    screenService.fetchBackgroundImage(settings.backgroundImage)
+                        .then(setBackgroundImage);
                 }
             })
             .catch((error) => console.error("Error loading settings:", error));
-    }, [BASE_URL, id]);
+    }, [id]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -88,13 +59,6 @@ export default function ScoreScreenPage() {
 
         return () => clearInterval(interval);
     }, [competition, teamsPerPage]);
-
-    function fetchBackgroundImage(immageUrl: string) {
-        fetch(BASE_URL + immageUrl)
-            .then((response) => response.blob())
-            .then((blob) => setBackgroundImage(URL.createObjectURL(blob)))
-            .catch((error) => console.error("Error loading background image:", error));
-    }
 
     function renderScoreCell(score: Score, index: number) {
         const background = score.highlight ? 'blue' : 'none';
@@ -137,14 +101,7 @@ export default function ScoreScreenPage() {
                         </tbody>
                     </table>
                 </div>
-                {showFooter &&
-                <footer className="bg-white w-full flex justify-evenly items-center" style={{height: "15vh", position: "absolute", bottom: 0}} id={"screenFooter"}>
-                    {footerImages.map((image) => (
-                        <div key={image} className="h-18">
-                            <img src={BASE_URL + image} alt="" style={{maxHeight: "13vh"}} />
-                        </div>
-                    ))}
-                </footer> }
+               <Footer settings={settings} />
             </div>
     );
 }
