@@ -76,7 +76,7 @@ export default function ScoreScreenPage() {
                 }
             })
             .catch((error) => console.error("Error loading settings:", error));
-    }, [BASE_URL]);
+    }, [BASE_URL, id]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -140,7 +140,9 @@ export default function ScoreScreenPage() {
                 {showFooter &&
                 <footer className="bg-white w-full flex justify-evenly items-center" style={{height: "15vh", position: "absolute", bottom: 0}} id={"screenFooter"}>
                     {footerImages.map((image) => (
-                        <img src={BASE_URL + image} key={image} className="h-18" style={{maxHeight: "13vh"}}/>
+                        <div key={image} className="h-18">
+                            <img src={BASE_URL + image} alt="" style={{maxHeight: "13vh"}} />
+                        </div>
                     ))}
                 </footer> }
             </div>

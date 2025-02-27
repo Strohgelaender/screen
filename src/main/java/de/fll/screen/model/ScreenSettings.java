@@ -28,8 +28,9 @@ public class ScreenSettings {
 	@Column(name = "images")
 	private List<String> footerImages;
 
-	public ScreenSettings() {
-	}
+	// TODO: teamsPerPage, highlightColor, textColor
+
+	public ScreenSettings() {}
 
 	public ScreenSettings(boolean showFooter, String backgroundImage, List<String> footerImages) {
 		this.showFooter = showFooter;

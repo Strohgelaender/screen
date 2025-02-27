@@ -10,7 +10,7 @@ import java.util.List;
 @RestController
 public class ScreenSettingsRessource {
 
-	private static final ScreenSettings DEFAULT_SETTINGS = new ScreenSettings(true, "/images/Hintergrund.png", List.of("/images/Material + CMA (1).jpg", "/images/FLL-RGB_Challenge-horiz-full-color.png", "/images/FIRST_SUBMERGED_Patch Logo_RGB.png"));
+	private static final ScreenSettings DEFAULT_SETTINGS = new ScreenSettings(true, "/images/Hintergrund.png", List.of("/images/Material + CMA (1).jpg", "/images/FLL-RGB_Challenge-horiz-full-color.png", "/images/submergedlogoanimated.gif"));
 
 	@GetMapping("/api/settings")
 	public ScreenSettings getSettings(@RequestParam(value = "id", required = false) Integer id) {
