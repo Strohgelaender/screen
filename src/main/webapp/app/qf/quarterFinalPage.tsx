@@ -8,6 +8,7 @@ import {Team} from "../models/team";
 import Footer from "../components/Footer";
 import {Category} from "../models/category";
 import {Score} from "../models/score";
+import ScreenContainer from "../components/ScreenContainer";
 
 export default function QuarterFinalPage() {
     const searchParams = useSearchParams()
@@ -18,7 +19,6 @@ export default function QuarterFinalPage() {
 
     const [settings, setSettings] = useState<ScreenSettings | null>(null);
     const [category, setCategory] = useState<Category | null>(null);
-    const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
     useEffect(() => {
         screenService.loadQFCategory(id)
@@ -32,12 +32,6 @@ export default function QuarterFinalPage() {
         screenService.loadScreenSettings(id)
             .then((settings) => {
                 setSettings(settings);
-                if (settings?.backgroundImage) {
-                    screenService.fetchBackgroundImage(settings.backgroundImage)
-                        .then((image) => {
-                            setBackgroundImage(image);
-                        });
-                }
             })
             .catch((error) => console.error("Error loading settings:", error));
     }, [id]);
@@ -49,36 +43,32 @@ export default function QuarterFinalPage() {
     }
 
     return (
-        <div className="w-screen h-screen flex flex-col items-center justify-start bg-cover bg-center"
-             style={{
-                 backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
-             }}
-        >
-            <h1 className="text-white text-4xl font-bold bg-black/50 px-4 py-12 rounded-lg">
-                QUARTER FINAL: {category?.name?.toUpperCase()}
-            </h1>
+            <ScreenContainer settings={settings}>
+                <h1 className="text-white text-4xl font-bold bg-black/50 px-4 py-12 rounded-lg">
+                    QUARTER FINAL: {category?.name?.toUpperCase()}
+                </h1>
 
-            <div className="text-white text-5xl bg-black/50 rounded-lg p-20">
-                <table className="w-full border-collapse table-fixed text-left text-white ">
-                    <thead>
-                    <tr>
-                        <th className="px-4 py-2 border-b border-r border-white w-auto">Team</th>
-                        <th className="px-4 py-2 border-r border-b border-white text-center w-60">QF</th>
-                        <th className="px-4 py-2 border-b border-white text-center w-60">Rank</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {category?.teams?.map((team: Team) => (
-                        <tr key={team.id}>
-                            <td className="px-4 py-2 border-t border-white">{team.name}</td>
-                            {team.scores.map((score, index) => renderScoreCell(score, index))}
-                            <td className="px-4 py-2 border-t border-white text-center">{team.rank}</td>
+                <div className="text-white text-5xl bg-black/50 rounded-lg p-20">
+                    <table className="w-full border-collapse table-fixed text-left text-white ">
+                        <thead>
+                        <tr>
+                            <th className="px-4 py-2 border-b border-r border-white w-auto">Team</th>
+                            <th className="px-4 py-2 border-r border-b border-white text-center w-60">QF</th>
+                            <th className="px-4 py-2 border-b border-white text-center w-60">Rank</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </div>
-            <Footer settings={settings} />
-        </div>
+                        </thead>
+                        <tbody>
+                        {category?.teams?.map((team: Team) => (
+                            <tr key={team.id}>
+                                <td className="px-4 py-2 border-t border-white">{team.name}</td>
+                                {team.scores.map((score, index) => renderScoreCell(score, index))}
+                                <td className="px-4 py-2 border-t border-white text-center">{team.rank}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+                <Footer settings={settings} />
+            </ScreenContainer>
     );
 }
