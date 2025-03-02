@@ -56,7 +56,10 @@ export default function ScoreScreenPage() {
             if (prevIndex === 0 && competition) {
                 const teams = competition.categories[0].teams;
                 const teamsLastPage = teams.length % teamsPerPage;
-                return competition.categories[0]?.teams?.length - teamsLastPage;
+                if (teamsLastPage === 0) {
+                    return teams.length - teamsPerPage;
+                }
+                return teams.length - teamsLastPage;
             }
             return Math.max(prevIndex - teamsPerPage, 0);
         });
