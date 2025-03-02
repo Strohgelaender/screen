@@ -21,7 +21,7 @@ export default function TestroundPage() {
     const [category, setCategory] = useState<Category | null>(null);
 
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [teamsPerPage] = useState(8);
+    const [teamsPerPage, setTeamsPerPage] = useState(8);
 
     useEffect(() => {
         screenService.loadTestround(id)
@@ -29,7 +29,7 @@ export default function TestroundPage() {
                 category.teams.sort((t1, t2) => {
                     return t2.scores[0].points - t1.scores[0].points;
                 });
-
+                setTeamsPerPage(screenService.calculateTeamsPerPage(category))
                 setCategory(category);
             })
             .catch((error) => console.error("Error loading category:", error));
@@ -72,6 +72,7 @@ export default function TestroundPage() {
                         <tr>
                             <th className="px-4 py-2 border-b border-r border-white w-auto">Team</th>
                             <th className="px-4 py-2 border-r border-b border-white text-center w-60">TR</th>
+                            <th className="px-4 py-2 border-b border-white text-center w-40">Rank</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -79,6 +80,7 @@ export default function TestroundPage() {
                             <tr key={team.id}>
                                 <td className="px-4 py-2 border-t border-white">{team.name}</td>
                                 {team.scores.map((score, index) => renderScoreCell(score, index))}
+                                <td className="px-4 py-2 border-t border-white text-center">{team.rank}</td>
                             </tr>
                         ))}
                         </tbody>

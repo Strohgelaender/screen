@@ -7,7 +7,11 @@ import java.util.List;
 import java.util.Set;
 
 public enum CategoryScoring implements CategoryComparator {
-	FLL_ROBOT_GAME(new FLLRobotGameComparator()), FLL_QUARTER_FINAL(new FLLQuarterFinalComparator()), WRO_STARTER(new WROStarterComparator()), WRO_ROBOMISSION_2025(new WRO2025Comparator());
+	FLL_ROBOT_GAME(new FLLRobotGameComparator()),
+	FLL_QUARTER_FINAL(new FLLQuarterFinalComparator()),
+	FLL_TESTROUND(new FLLTestRoundComparator()),
+	WRO_STARTER(new WROStarterComparator()),
+	WRO_ROBOMISSION_2025(new WRO2025Comparator());
 
 	private final CategoryComparator categoryComparator;
 

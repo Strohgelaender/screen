@@ -19,16 +19,7 @@ public class FLLQuarterFinalComparator extends AbstractFLLComparator {
 
 	@Override
 	public int compare(Team t1, Team t2) {
-		var s1 = t1.getScoreForRound(QUARTER_FINAL_ROUND_INDEX);
-		var s2 = t2.getScoreForRound(QUARTER_FINAL_ROUND_INDEX);
-		if (s1 == null && s2 == null) {
-			return 0;
-		} else if (s1 == null) {
-			return 1;
-		} else if (s2 == null) {
-			return -1;
-		}
-		return -s1.compareToWithTime(s2);
+		return compareOneScore(t1, t2, QUARTER_FINAL_ROUND_INDEX);
 	}
 
 	@Override

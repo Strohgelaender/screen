@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 abstract class AbstractFLLComparator implements CategoryComparator {
 
-	protected abstract List<Score> getRelevantScores(Team scores);
+	protected abstract List<Score> getRelevantScores(Team team);
 
 	protected List<TeamDTO> assignRanks(Set<Team> teams, Function<Team, Score> scoreExtractor) {
 		List<Team> sorted = new ArrayList<>(teams);
@@ -36,5 +36,18 @@ abstract class AbstractFLLComparator implements CategoryComparator {
 			previousScore = bestScore.getPoints();
 		}
 		return teamDTOs;
+	}
+
+	protected int compareOneScore(Team t1, Team t2, int roundIndex) {
+		var s1 = t1.getScoreForRound(roundIndex);
+		var s2 = t2.getScoreForRound(roundIndex);
+		if (s1 == null && s2 == null) {
+			return 0;
+		} else if (s1 == null) {
+			return 1;
+		} else if (s2 == null) {
+			return -1;
+		}
+		return -s1.compareToWithTime(s2);
 	}
 }

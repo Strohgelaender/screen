@@ -12,8 +12,7 @@ public interface CategoryComparator extends Comparator<Team> {
 	Set<Integer> getHighlightIndices(Team team);
 
 	/**
-	 * Use the comparator to assign ranks to the teams
-	 * and convert to TeamDTOs
+	 * Use the comparator to assign ranks to the teams and convert to TeamDTOs
 	 */
 	List<TeamDTO> assignRanks(Set<Team> teams);
 

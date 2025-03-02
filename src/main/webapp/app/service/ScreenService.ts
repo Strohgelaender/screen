@@ -29,8 +29,8 @@ export class ScreenService {
         return await response.json();
     }
 
-    public calculateTeamsPerPage(competition: Competition): number {
-        const teams = competition.categories[0].teams;
+    public calculateTeamsPerPage(category: Category): number {
+        const teams = category.teams;
         let pages = 3;
         if (teams.length < 8) {
             pages = 1;

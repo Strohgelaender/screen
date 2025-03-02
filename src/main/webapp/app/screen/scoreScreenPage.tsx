@@ -29,7 +29,7 @@ export default function ScoreScreenPage() {
         screenService.loadCompetition(id)
             .then((competition) => {
                 setCompetition(competition);
-                setTeamsPerPage(screenService.calculateTeamsPerPage(competition));
+                setTeamsPerPage(screenService.calculateTeamsPerPage(competition.categories[0]));
             })
             .catch((error) => setError(error.message));
     }, [id]);

@@ -1,11 +1,11 @@
 package de.fll.screen.web;
 
-import de.fll.screen.model.Category;
 import de.fll.screen.model.Competition;
 import de.fll.screen.repository.CompetitionRepository;
 import de.fll.screen.service.parser.FLLRobotGameParser;
 import de.fll.screen.web.dto.CompetitionDTO;
 import de.fll.screen.web.dto.QuarterFinalCategoryDTO;
+import de.fll.screen.web.dto.TestroundCategoryDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -54,12 +54,12 @@ public class ParserRessource {
 	}
 
 	@GetMapping("/api/testround")
-	public Category parseTestRound(@RequestParam(value = "id", required = false) Integer id) {
+	public TestroundCategoryDTO parseTestRound(@RequestParam(value = "id", required = false) Integer id) {
 		id = resolveId(id);
 
 		// TODO reuse saved competition
 
-		return parser.parseTestRound(null, id);
+		return TestroundCategoryDTO.of(parser.parseTestRound(id));
 	}
 
 	private Integer resolveId(Integer id) {

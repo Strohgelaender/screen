@@ -12,6 +12,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -61,19 +62,15 @@ public class FLLRobotGameParser implements Parser {
 		return parse(competition, id, username, password);
 	}
 
-	public Category parseTestRound(Competition competition, int id) {
-		return parseTestRound(competition, id, username, password);
+	public Category parseTestRound(int id) {
+		return parseTestRound(id, username, password);
+		// TODO: Log webrequests (start and end) for better debugging
 	}
 
-	public Category parseTestRound(Competition competition, int id, String username, String password) {
+	public Category parseTestRound(int id, String username, String password) {
 		/// TODO quick hack at competiton, make this a lot better please!!!!
 		boolean loginNeeded = !cookieManagers.containsKey(username);
 		CookieManager cookieManager = cookieManagers.computeIfAbsent(username, k -> new CookieManager());
-
-		if (competition == null) {
-			competition = new Competition();
-			competition.setInternalId(id);
-		}
 
 		// Beim Schiri Login hat der Redirect nicht funktioniert, daher nutzten wir den bestehendne Cookie um direkt auf die Seite zu navigieren.
 		// TODO: Erkennen wann der Cookie abläuft und dann erneut anmelden.
@@ -87,7 +84,7 @@ public class FLLRobotGameParser implements Parser {
 		if (rawPairingPage == null) {
 			return null; // SOMETHING WENT WRONG WHILE GETTING DATA
 		}
-		return testroundPairings(Jsoup.parse(rawPairingPage), competition);
+		return testroundPairings(Jsoup.parse(rawPairingPage));
 	}
 
 	public List<String> getOwnCompetitionIds() {
@@ -303,15 +300,19 @@ public class FLLRobotGameParser implements Parser {
 		return 0; // TODO: Auto-Detect Round to be used in smart generation
 	}
 
-	private Category testroundPairings(Document document, Competition competition) {
+	private Category testroundPairings(Document document) {
 		Category category = new Category();
-		category.setName("Testrunde");
 
 		Element collapseSet = document.selectFirst(".collaps-set");
 		var testroundLi = collapseSet.selectFirst("li");
+
+		String title = testroundLi.selectFirst("h2").text();
+		category.setName(title);
+
 		var matches = testroundLi.select(".match");
 
-		Set<Team> teams = new HashSet<>();
+		Set<Team> teams = Collections.synchronizedSet(new HashSet<>());
+		List<CompletableFuture<Void>> teamFutures = new ArrayList<>();
 		matches.forEach(e -> {
 			var a = e.select("a");
 			if (a.size() == 1) {
@@ -321,20 +322,29 @@ public class FLLRobotGameParser implements Parser {
 						+ "FREIER SLOT (HAT KEINE PKTE)");
 				var link = extractLink(a.getFirst());
 
-				teams.add(getTestroundScore(link, a.getFirst().text(), username));
+				teamFutures.add(requestTestroundScore(a.getFirst(), teams));
 			} else {
 				var teamLink1 = a.get(0);
 				var teamLink2 = a.get(1);
 
-				Team team1 = getTestroundScore(extractLink(teamLink1), teamLink1.text(), username);
-				Team team2 = getTestroundScore(extractLink(teamLink2), teamLink2.text(), username);
-				teams.add(team1);
-				teams.add(team2);
+				teamFutures.add(requestTestroundScore(teamLink1, teams));
+				teamFutures.add(requestTestroundScore(teamLink2, teams));
 			}
 		});
 
+		CompletableFuture.allOf(teamFutures.toArray(new CompletableFuture[0])).join();
 		category.setTeams(teams);
 		return category;
+	}
+
+	private CompletableFuture<Void> requestTestroundScore(Element teamLink, Set<Team> teams) {
+		return CompletableFuture.supplyAsync(() -> getTestroundScore(extractLink(teamLink), extractTeamnameFromTestround(teamLink), username))
+				.thenAccept(teams::add);
+	}
+
+	private String extractTeamnameFromTestround(Element a) {
+		String teamName = a.text();
+		return teamName.substring(0, teamName.lastIndexOf('[')).strip();
 	}
 
 	private void updatePairings(Document doc, Competition competition) {
@@ -442,7 +452,7 @@ public class FLLRobotGameParser implements Parser {
 		var res = parser.getOwnCompetitionIds(args[0], args[1]);
 		System.out.println("Available Competitions: " + res);
 		/* Set<Competition> collect = res.stream().mapToInt(r -> Integer.parseInt(r)) .mapToObj(i -> parser.parse(null, i, args[0], args[1])) .collect(Collectors.toSet()) System.out.println(collect); */
-		var testRound = parser.parseTestRound(null, 353, args[0], args[1]);
+		var testRound = parser.parseTestRound(353, args[0], args[1]);
 		System.out.println("DONE");
 	}
 }
