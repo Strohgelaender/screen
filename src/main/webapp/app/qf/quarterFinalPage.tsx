@@ -3,7 +3,7 @@
 import {useEffect, useState} from "react";
 import {ScreenSettings} from "../models/screenSettings";
 import {useSearchParams} from "next/navigation";
-import {ScreenService} from "../service/ScreenService";
+import {loadQFCategory, loadScreenSettings} from "../services/ScreenService";
 import {Team} from "../models/team";
 import Footer from "../components/Footer";
 import {Category} from "../models/category";
@@ -15,13 +15,11 @@ export default function QuarterFinalPage() {
     const rawId = searchParams.get("id") ?? "348";
     const id = parseInt(rawId, 10);
 
-    const screenService = new ScreenService();
-
     const [settings, setSettings] = useState<ScreenSettings | null>(null);
     const [category, setCategory] = useState<Category | null>(null);
 
     useEffect(() => {
-        screenService.loadQFCategory(id)
+        loadQFCategory(id)
             .then((category) => {
                 setCategory(category);
             })
@@ -29,7 +27,7 @@ export default function QuarterFinalPage() {
     }, [id]);
 
     useEffect(() => {
-        screenService.loadScreenSettings(id)
+        loadScreenSettings(id)
             .then((settings) => {
                 setSettings(settings);
             })

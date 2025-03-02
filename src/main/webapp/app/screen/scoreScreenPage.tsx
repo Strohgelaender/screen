@@ -7,15 +7,13 @@ import {Score} from "../models/score";
 import {Team} from "../models/team";
 import Footer from "../components/Footer";
 import {ScreenSettings} from "../models/screenSettings";
-import {ScreenService} from "../service/ScreenService";
+import {loadCompetition, calculateTeamsPerPage, loadScreenSettings} from "../services/ScreenService";
 import ScreenContainer from "../components/ScreenContainer";
 
 export default function ScoreScreenPage() {
     const searchParams = useSearchParams()
     const rawId = searchParams.get("id") ?? "348";
     const id = parseInt(rawId, 10);
-
-    const screenService = new ScreenService();
 
     const [competition, setCompetition] = useState<Competition | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -26,16 +24,16 @@ export default function ScoreScreenPage() {
     const [settings, setSettings] = useState<ScreenSettings | null>(null);
 
     useEffect(() => {
-        screenService.loadCompetition(id)
+        loadCompetition(id)
             .then((competition) => {
                 setCompetition(competition);
-                setTeamsPerPage(screenService.calculateTeamsPerPage(competition.categories[0]));
+                setTeamsPerPage(calculateTeamsPerPage(competition.categories[0]));
             })
             .catch((error) => setError(error.message));
     }, [id]);
 
     useEffect(() => {
-        screenService.loadScreenSettings(id)
+        loadScreenSettings(id)
             .then((settings) => {
                 setSettings(settings);
                 if (settings?.teamsPerPage) {

@@ -4,12 +4,8 @@ import {Category} from "../models/category";
 
 const BASE_URL = "http://localhost:8080";
 
-export class ScreenService {
 
-    constructor() {
-    }
-
-    public async loadCompetition(id: number): Promise<Competition> {
+    export async function loadCompetition(id: number): Promise<Competition> {
                     const response = await fetch(BASE_URL + "/api/parse?id=" + id);
             const competition: Competition = await response.json();
 
@@ -19,17 +15,17 @@ export class ScreenService {
             return competition;
     }
 
-    public async loadQFCategory(id: number): Promise<Category> {
+    export async function loadQFCategory(id: number): Promise<Category> {
         const response = await fetch(BASE_URL + "/api/quarter?id=" + id);
         return await response.json();
     }
 
-    public async loadTestround(id: number): Promise<Category> {
+    export async function loadTestround(id: number): Promise<Category> {
         const response = await fetch(BASE_URL + "/api/testround?id=" + id);
         return await response.json();
     }
 
-    public calculateTeamsPerPage(category: Category): number {
+    export function calculateTeamsPerPage(category: Category): number {
         const teams = category.teams;
         let pages = 3;
         if (teams.length < 8) {
@@ -48,12 +44,12 @@ export class ScreenService {
         return perPage;
     }
 
-    public async loadScreenSettings(id: number): Promise<ScreenSettings> {
+    export async function loadScreenSettings(id: number): Promise<ScreenSettings> {
         const response = await fetch(BASE_URL + "/api/settings?id=" + id);
         return await response.json();
     }
 
-    public async fetchBackgroundImage(immageUrl: string): Promise<string | null> {
+    export async function fetchBackgroundImage(immageUrl: string): Promise<string | null> {
         try {
             const response = await fetch(BASE_URL + immageUrl);
             const blob = await response.blob();
@@ -63,4 +59,3 @@ export class ScreenService {
         }
         return null;
     }
-}

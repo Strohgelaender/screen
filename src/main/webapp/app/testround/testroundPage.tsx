@@ -3,7 +3,7 @@
 import {useEffect, useState} from "react";
 import {ScreenSettings} from "../models/screenSettings";
 import {useSearchParams} from "next/navigation";
-import {ScreenService} from "../service/ScreenService";
+import {loadTestround, loadScreenSettings, calculateTeamsPerPage} from "../services/ScreenService";
 import {Team} from "../models/team";
 import Footer from "../components/Footer";
 import {Category} from "../models/category";
@@ -15,8 +15,6 @@ export default function TestroundPage() {
     const rawId = searchParams.get("id") ?? "348";
     const id = parseInt(rawId, 10);
 
-    const screenService = new ScreenService();
-
     const [settings, setSettings] = useState<ScreenSettings | null>(null);
     const [category, setCategory] = useState<Category | null>(null);
 
@@ -24,19 +22,19 @@ export default function TestroundPage() {
     const [teamsPerPage, setTeamsPerPage] = useState(8);
 
     useEffect(() => {
-        screenService.loadTestround(id)
+        loadTestround(id)
             .then((category) => {
                 category.teams.sort((t1, t2) => {
                     return t2.scores[0].points - t1.scores[0].points;
                 });
-                setTeamsPerPage(screenService.calculateTeamsPerPage(category))
+                setTeamsPerPage(calculateTeamsPerPage(category))
                 setCategory(category);
             })
             .catch((error) => console.error("Error loading category:", error));
     }, [id]);
 
     useEffect(() => {
-        screenService.loadScreenSettings(id)
+        loadScreenSettings(id)
             .then((settings) => {
                 setSettings(settings);
             })

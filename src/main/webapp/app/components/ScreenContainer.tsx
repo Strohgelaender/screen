@@ -2,21 +2,19 @@
 
 import React, {useEffect, useState} from "react";
 import {ScreenSettings} from "../models/screenSettings";
-import {ScreenService} from "../service/ScreenService";
+import {fetchBackgroundImage} from "../services/ScreenService";
 
 interface ScreenContainerProps {
     settings: ScreenSettings | null;
     children: React.ReactNode;
 }
 
-const screenService = new ScreenService();
-
 const ScreenContainer: React.FC<ScreenContainerProps> = ({settings, children}) => {
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (settings?.backgroundImage) {
-            screenService.fetchBackgroundImage(settings.backgroundImage)
+            fetchBackgroundImage(settings.backgroundImage)
                 .then(setBackgroundImage);
         }
     }, [settings]);
