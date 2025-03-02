@@ -22,19 +22,18 @@ abstract class AbstractFLLComparator implements CategoryComparator {
 		int rank = 0;
 		for (int i = 0; i < sorted.size(); i++) {
 			Team team = sorted.get(i);
-			Score score = scoreExtractor.apply(team);
-			if (score.getPoints() != previousScore) {
+			Score bestScore = scoreExtractor.apply(team);
+			if (bestScore.getPoints() != previousScore) {
 				rank = i + 1;
 			}
 
 			var highlightIndices = getHighlightIndices(team);
 
 			var scores = getRelevantScores(team).stream()
-					.map(s -> new TeamDTO.ScoreDTO(s.getPoints(), s.getTime(), highlightIndices.contains(team.getScores().indexOf(score))))
+					.map(score -> TeamDTO.ScoreDTO.of(score, highlightIndices.contains(team.getScores().indexOf(score))))
 					.toList();
-					;
 			teamDTOs.add(new TeamDTO(team.getId(), team.getName(), scores, rank));
-			previousScore = score.getPoints();
+			previousScore = bestScore.getPoints();
 		}
 		return teamDTOs;
 	}
