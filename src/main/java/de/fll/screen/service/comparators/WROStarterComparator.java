@@ -1,4 +1,4 @@
-package de.fll.screen.model.comparators;
+package de.fll.screen.service.comparators;
 
 import de.fll.screen.model.Score;
 import de.fll.screen.model.Team;
@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-public class WROStarterComparator implements CategoryComparator {
+public class WROStarterComparator extends AbstractWROComparator {
 
 	@Override
 	public int compare(Team team1, Team team2) {

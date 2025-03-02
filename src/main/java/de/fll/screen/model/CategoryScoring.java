@@ -1,6 +1,6 @@
 package de.fll.screen.model;
 
-import de.fll.screen.model.comparators.*;
+import de.fll.screen.service.comparators.*;
 import de.fll.screen.web.dto.TeamDTO;
 
 import java.util.List;

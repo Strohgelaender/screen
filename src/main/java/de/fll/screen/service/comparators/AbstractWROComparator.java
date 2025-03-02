@@ -1,20 +1,17 @@
-package de.fll.screen.model.comparators;
+package de.fll.screen.service.comparators;
 
 import de.fll.screen.model.Team;
 import de.fll.screen.web.dto.TeamDTO;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-public interface CategoryComparator extends Comparator<Team> {
-
-	Set<Integer> getHighlightIndices(Team team);
+abstract class AbstractWROComparator implements CategoryComparator {
 
 	// Use the comparator to assign ranks to the teams
 	// The same rank is only assigned if the comparator returns 0
-	default List<TeamDTO> assignRanks(Set<Team> teams) {
+	public List<TeamDTO> assignRanks(Set<Team> teams) {
 		List<Team> sorted = new ArrayList<>(teams);
 		sorted.sort(this);
 		List<TeamDTO> teamDTOs = new ArrayList<>(teams.size());
