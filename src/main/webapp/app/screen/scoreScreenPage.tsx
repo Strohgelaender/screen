@@ -1,7 +1,7 @@
 "use client";
 
 import {useSearchParams} from "next/navigation";
-import { useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {Competition} from "../models/competition";
 import {Score} from "../models/score";
 import {Team} from "../models/team";
@@ -19,6 +19,7 @@ export default function ScoreScreenPage() {
     const [error, setError] = useState<string | null>(null);
 
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
 
     const [teamsPerPage, setTeamsPerPage] = useState(8);
     const [settings, setSettings] = useState<ScreenSettings | null>(null);
@@ -43,16 +44,48 @@ export default function ScoreScreenPage() {
             .catch((error) => console.error("Error loading settings:", error));
     }, [id]);
 
+    const advancePage = useCallback(() => {
+        setCurrentIndex((prevIndex) => {
+            if (!competition || prevIndex + teamsPerPage > competition.categories[0].teams.length) return 0;
+            return (prevIndex + teamsPerPage) % competition.categories[0].teams.length;
+        });
+    }, [competition, teamsPerPage]);
+
+    const previousPage = useCallback(() => {
+        setCurrentIndex((prevIndex) => {
+            if (prevIndex === 0 && competition) {
+                const teams = competition.categories[0].teams;
+                const teamsLastPage = teams.length % teamsPerPage;
+                return competition.categories[0]?.teams?.length - teamsLastPage;
+            }
+            return Math.max(prevIndex - teamsPerPage, 0);
+        });
+    }, [teamsPerPage]);
+
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentIndex((prevIndex) => {
-                if (!competition || prevIndex + teamsPerPage > competition.categories[0].teams.length) return 0;
-                return (prevIndex + teamsPerPage) % competition.categories[0].teams.length;
-            });
+            if (isPaused) return;
+            advancePage();
         }, 15000);
 
         return () => clearInterval(interval);
-    }, [competition, teamsPerPage]);
+    }, [competition, teamsPerPage, isPaused, advancePage]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                console.log('pausing');
+                setIsPaused((prev) => !prev);
+            } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+                advancePage();
+            } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+                previousPage();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isPaused, competition, teamsPerPage, advancePage, previousPage]);
 
     function renderScoreCell(score: Score, index: number) {
         const background = score.highlight ? 'blue' : 'none';
