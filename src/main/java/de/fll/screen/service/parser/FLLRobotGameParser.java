@@ -61,6 +61,35 @@ public class FLLRobotGameParser implements Parser {
 		return parse(competition, id, username, password);
 	}
 
+	public Category parseTestRound(Competition competition, int id) {
+		return parseTestRound(competition, id, username, password);
+	}
+
+	public Category parseTestRound(Competition competition, int id, String username, String password) {
+		/// TODO quick hack at competiton, make this a lot better please!!!!
+		boolean loginNeeded = !cookieManagers.containsKey(username);
+		CookieManager cookieManager = cookieManagers.computeIfAbsent(username, k -> new CookieManager());
+
+		if (competition == null) {
+			competition = new Competition();
+			competition.setInternalId(id);
+		}
+
+		// Beim Schiri Login hat der Redirect nicht funktioniert, daher nutzten wir den bestehendne Cookie um direkt auf die Seite zu navigieren.
+		// TODO: Erkennen wann der Cookie abläuft und dann erneut anmelden.
+		if (!loginNeeded) {
+			requestPageAfterLogin(cookieManager, makeURL(RG_SCORE_PATH + id));
+		} else {
+			requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH + id), username, password);
+		}
+
+		String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
+		if (rawPairingPage == null) {
+			return null; // SOMETHING WENT WRONG WHILE GETTING DATA
+		}
+		return testroundPairings(Jsoup.parse(rawPairingPage), competition);
+	}
+
 	public List<String> getOwnCompetitionIds() {
 		return getOwnCompetitionIds(username, password);
 	}
@@ -274,6 +303,40 @@ public class FLLRobotGameParser implements Parser {
 		return 0; // TODO: Auto-Detect Round to be used in smart generation
 	}
 
+	private Category testroundPairings(Document document, Competition competition) {
+		Category category = new Category();
+		category.setName("Testrunde");
+
+		Element collapseSet = document.selectFirst(".collaps-set");
+		var testroundLi = collapseSet.selectFirst("li");
+		var matches = testroundLi.select(".match");
+
+		Set<Team> teams = new HashSet<>();
+		matches.forEach(e -> {
+			var a = e.select("a");
+			if (a.size() == 1) {
+				// FREE SLOT DETECTED
+				System.out.println(a.getFirst().text()
+						+ " ||||| "
+						+ "FREIER SLOT (HAT KEINE PKTE)");
+				var link = extractLink(a.getFirst());
+
+				teams.add(getTestroundScore(link, a.getFirst().text(), username));
+			} else {
+				var teamLink1 = a.get(0);
+				var teamLink2 = a.get(1);
+
+				Team team1 = getTestroundScore(extractLink(teamLink1), teamLink1.text(), username);
+				Team team2 = getTestroundScore(extractLink(teamLink2), teamLink2.text(), username);
+				teams.add(team1);
+				teams.add(team2);
+			}
+		});
+
+		category.setTeams(teams);
+		return category;
+	}
+
 	private void updatePairings(Document doc, Competition competition) {
 		Element collapseSet = doc.selectFirst(".collaps-set");
 		var preliminaryPairings = Objects.requireNonNull(collapseSet, "Could not find preliminary round containers!")
@@ -303,6 +366,22 @@ public class FLLRobotGameParser implements Parser {
 		// checkMatch(extractLink(pairing), competition);
 		// System.out.println("DONE");
 		// TODO extract data from eval sheets
+	}
+
+	private Team getTestroundScore(String path, String teamName, String username) {
+		Team team = new Team();
+		String match = requestPageAfterLogin(cookieManagers.get(username), environment + "/" + path);
+		var doc = Jsoup.parse(match);
+
+		team.setName(teamName);
+
+		var finalScore = doc.selectFirst("#finalScore");
+		String score = finalScore.val();
+
+		Score teamScore = new Score(Integer.parseInt(score), -1);
+		team.getScores().add(teamScore);
+
+		return team;
 	}
 
 	private void checkMatch(String path, Competition competition, String username) {
@@ -355,13 +434,15 @@ public class FLLRobotGameParser implements Parser {
 		local = LOCAL_DE;
 		var parser = new FLLRobotGameParser(null);
 		parser.environment = HOT_LIVE;
+
+		parser.username = args[0];
+		parser.password = args[1];
+
 		// Competition competition = parser.parse(null, 231, args[0], args[1]);
 		var res = parser.getOwnCompetitionIds(args[0], args[1]);
 		System.out.println("Available Competitions: " + res);
-		Set<Competition> collect = res.stream().mapToInt(r -> Integer.parseInt(r))
-				.mapToObj(i -> parser.parse(null, i, args[0], args[1]))
-				.collect(Collectors.toSet());
-		System.out.println(collect);
+		/* Set<Competition> collect = res.stream().mapToInt(r -> Integer.parseInt(r)) .mapToObj(i -> parser.parse(null, i, args[0], args[1])) .collect(Collectors.toSet()) System.out.println(collect); */
+		var testRound = parser.parseTestRound(null, 353, args[0], args[1]);
 		System.out.println("DONE");
 	}
 }

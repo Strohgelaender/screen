@@ -4,10 +4,7 @@ import de.fll.screen.model.Score;
 import de.fll.screen.model.Team;
 import de.fll.screen.web.dto.TeamDTO;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class FLLRobotGameComparator implements CategoryComparator {
 
@@ -36,6 +33,9 @@ public class FLLRobotGameComparator implements CategoryComparator {
 	public Set<Integer> getHighlightIndices(Team team) {
 		var scores = getRelevantScores(team.getScores());
 		double bestScore = getBestScore(team);
+		if (bestScore == 0) {
+			return Collections.emptySet();
+		}
 		// Highlight first occurrence of best score
 		for (int i = 0; i < scores.size(); i++) {
 			if (scores.get(i).getPoints() == bestScore) {

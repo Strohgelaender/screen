@@ -23,6 +23,11 @@ public class WebClientRessource {
 
 	@GetMapping("/quarter")
 	public String quarter() {
-		return "forward:/quarter.html";
+		return "forward:/qf.html";
+	}
+
+	@GetMapping("/testround")
+	public String testround() {
+		return "forward:/testround.html";
 	}
 }

@@ -1,5 +1,6 @@
 package de.fll.screen.web;
 
+import de.fll.screen.model.Category;
 import de.fll.screen.model.Competition;
 import de.fll.screen.repository.CompetitionRepository;
 import de.fll.screen.service.parser.FLLRobotGameParser;
@@ -50,6 +51,15 @@ public class ParserRessource {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No categories available");
 		}
 		return QuarterFinalCategoryDTO.of(competition.getCategories().iterator().next());
+	}
+
+	@GetMapping("/api/testround")
+	public Category parseTestRound(@RequestParam(value = "id", required = false) Integer id) {
+		id = resolveId(id);
+
+		// TODO reuse saved competition
+
+		return parser.parseTestRound(null, id);
 	}
 
 	private Integer resolveId(Integer id) {

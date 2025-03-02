@@ -24,6 +24,11 @@ export class ScreenService {
         return await response.json();
     }
 
+    public async loadTestround(id: number): Promise<Category> {
+        const response = await fetch(BASE_URL + "/api/testround?id=" + id);
+        return await response.json();
+    }
+
     public calculateTeamsPerPage(competition: Competition): number {
         const teams = competition.categories[0].teams;
         let pages = 3;
