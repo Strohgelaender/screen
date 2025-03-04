@@ -63,7 +63,7 @@ export default function ScoreScreenPage() {
             }
             return Math.max(prevIndex - teamsPerPage, 0);
         });
-    }, [teamsPerPage]);
+    }, [teamsPerPage, competition]);
 
     useEffect(() => {
         const interval = setInterval(() => {
