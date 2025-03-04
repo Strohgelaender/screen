@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import {Suspense} from "react";
-import ScoreScreenPage from "./scoreScreenPage";
+import { Suspense } from 'react';
+import ScoreScreenPage from './scoreScreenPage';
 
 export default function ScreenPageWrapper() {
     return (

@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import {useEffect, useState} from "react";
-import {ScreenSettings} from "../models/screenSettings";
-import {useSearchParams} from "next/navigation";
-import {loadQFCategory, loadScreenSettings} from "../services/ScreenService";
-import {Team} from "../models/team";
-import Footer from "../components/Footer";
-import {Category} from "../models/category";
-import {Score} from "../models/score";
-import ScreenContainer from "../components/ScreenContainer";
+import { useEffect, useState } from 'react';
+import { ScreenSettings } from '../models/screenSettings';
+import { useSearchParams } from 'next/navigation';
+import { loadQFCategory, loadScreenSettings } from '../services/ScreenService';
+import { Team } from '../models/team';
+import Footer from '../components/Footer';
+import { Category } from '../models/category';
+import { Score } from '../models/score';
+import ScreenContainer from '../components/ScreenContainer';
 
 export default function QuarterFinalPage() {
-    const searchParams = useSearchParams()
-    const rawId = searchParams.get("id") ?? "348";
+    const searchParams = useSearchParams();
+    const rawId = searchParams.get('id') ?? '348';
     const id = parseInt(rawId, 10);
 
     const [settings, setSettings] = useState<ScreenSettings | null>(null);
@@ -23,7 +23,7 @@ export default function QuarterFinalPage() {
             .then((category) => {
                 setCategory(category);
             })
-            .catch((error) => console.error("Error loading category:", error));
+            .catch((error) => console.error('Error loading category:', error));
     }, [id]);
 
     useEffect(() => {
@@ -31,31 +31,32 @@ export default function QuarterFinalPage() {
             .then((settings) => {
                 setSettings(settings);
             })
-            .catch((error) => console.error("Error loading settings:", error));
+            .catch((error) => console.error('Error loading settings:', error));
     }, [id]);
 
     function renderScoreCell(score: Score, index: number) {
         const background = score.highlight ? 'blue' : 'none';
-        return <td className="px-4 border-t border-r border-l border-white text-center" key={index}
-                   style={{background}}>{score.points}</td>;
+        return (
+            <td className="px-4 border-t border-r border-l border-white text-center" key={index} style={{ background }}>
+                {score.points}
+            </td>
+        );
     }
 
     return (
-            <ScreenContainer settings={settings}>
-                <h1 className="text-white text-4xl font-bold bg-black/50 px-4 py-12 rounded-lg">
-                    QUARTER FINAL: {category?.name?.toUpperCase()}
-                </h1>
+        <ScreenContainer settings={settings}>
+            <h1 className="text-white text-4xl font-bold bg-black/50 px-4 py-12 rounded-lg">QUARTER FINAL: {category?.name?.toUpperCase()}</h1>
 
-                <div className="text-white text-5xl bg-black/50 rounded-lg p-20">
-                    <table className="w-full border-collapse table-fixed text-left text-white ">
-                        <thead>
+            <div className="text-white text-5xl bg-black/50 rounded-lg p-20">
+                <table className="w-full border-collapse table-fixed text-left text-white ">
+                    <thead>
                         <tr>
                             <th className="px-4 py-2 border-b border-r border-white w-auto">Team</th>
                             <th className="px-4 py-2 border-r border-b border-white text-center w-60">QF</th>
                             <th className="px-4 py-2 border-b border-white text-center w-60">Rank</th>
                         </tr>
-                        </thead>
-                        <tbody>
+                    </thead>
+                    <tbody>
                         {category?.teams?.map((team: Team) => (
                             <tr key={team.id}>
                                 <td className="px-4 py-2 border-t border-white">{team.name}</td>
@@ -63,10 +64,10 @@ export default function QuarterFinalPage() {
                                 <td className="px-4 py-2 border-t border-white text-center">{team.rank}</td>
                             </tr>
                         ))}
-                        </tbody>
-                    </table>
-                </div>
-                <Footer settings={settings} />
-            </ScreenContainer>
+                    </tbody>
+                </table>
+            </div>
+            <Footer settings={settings} />
+        </ScreenContainer>
     );
 }

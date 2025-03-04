@@ -1,5 +1,5 @@
-import {Score} from "./score";
-import {Category} from "./category";
+import { Score } from './score';
+import { Category } from './category';
 
 export class Team {
     id: number;

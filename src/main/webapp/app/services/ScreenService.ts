@@ -1,26 +1,26 @@
-import {Competition} from "../models/competition";
-import {ScreenSettings} from "../models/screenSettings";
-import {Category} from "../models/category";
+import { Competition } from '../models/competition';
+import { ScreenSettings } from '../models/screenSettings';
+import { Category } from '../models/category';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function loadCompetition(id: number): Promise<Competition> {
-    const response = await fetch(BASE_URL + "/api/parse?id=" + id);
+    const response = await fetch(BASE_URL + '/api/parse?id=' + id);
     const competition: Competition = await response.json();
 
     if (!competition?.categories?.length) {
-        throw new Error("No scores found for this competition");
+        throw new Error('No scores found for this competition');
     }
     return competition;
 }
 
 export async function loadQFCategory(id: number): Promise<Category> {
-    const response = await fetch(BASE_URL + "/api/quarter?id=" + id);
+    const response = await fetch(BASE_URL + '/api/quarter?id=' + id);
     return await response.json();
 }
 
 export async function loadTestround(id: number): Promise<Category> {
-    const response = await fetch(BASE_URL + "/api/testround?id=" + id);
+    const response = await fetch(BASE_URL + '/api/testround?id=' + id);
     return await response.json();
 }
 
@@ -44,7 +44,7 @@ export function calculateTeamsPerPage(category: Category): number {
 }
 
 export async function loadScreenSettings(id: number): Promise<ScreenSettings> {
-    const response = await fetch(BASE_URL + "/api/settings?id=" + id);
+    const response = await fetch(BASE_URL + '/api/settings?id=' + id);
     return await response.json();
 }
 
@@ -54,7 +54,7 @@ export async function fetchBackgroundImage(immageUrl: string): Promise<string | 
         const blob = await response.blob();
         return URL.createObjectURL(blob);
     } catch (error) {
-        console.error("Error loading background image:", error);
+        console.error('Error loading background image:', error);
     }
     return null;
 }

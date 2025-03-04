@@ -1,5 +1,5 @@
-import {Competition} from "./competition";
-import {Team} from "./team";
+import { Competition } from './competition';
+import { Team } from './team';
 
 export class Category {
     id: number;

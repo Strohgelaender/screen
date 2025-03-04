@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import {Suspense} from "react";
-import QuarterFinalPage from "./quarterFinalPage";
+import { Suspense } from 'react';
+import QuarterFinalPage from './quarterFinalPage';
 
 export default function ScreenPageWrapper() {
     return (
