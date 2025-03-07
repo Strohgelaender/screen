@@ -31,9 +31,6 @@ export default function ScoreScreenPage() {
                 setTeamsPerPage(calculateTeamsPerPage(competition.categories[0]));
             })
             .catch((error) => setError(error.message));
-    }, [id]);
-
-    useEffect(() => {
         loadScreenSettings(id)
             .then((settings) => {
                 setSettings(settings);

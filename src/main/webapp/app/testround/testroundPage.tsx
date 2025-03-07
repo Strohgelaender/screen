@@ -31,9 +31,7 @@ export default function TestroundPage() {
                 setCategory(category);
             })
             .catch((error) => console.error('Error loading category:', error));
-    }, [id]);
 
-    useEffect(() => {
         loadScreenSettings(id)
             .then((settings) => {
                 setSettings(settings);
