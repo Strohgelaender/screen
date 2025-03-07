@@ -31,7 +31,7 @@ public class ParserRessource {
 	}
 
 	@GetMapping("/api/parse")
-	public CompetitionDTO parse(@RequestParam(value = "id", required = false) Integer id) {
+	public CompetitionDTO parse(@RequestParam(value = "id", required = false) Integer id) throws Exception {
 		id = resolveId(id);
 		// TODO don't always reparse, only when triggered by user
 		/* if (competitionRepository.existsByInternalId(id)) { return competitionRepository.findByInternalId(id); } */
@@ -41,7 +41,7 @@ public class ParserRessource {
 	}
 
 	@GetMapping("/api/quarter")
-	public QuarterFinalCategoryDTO parseQuarterFinal(@RequestParam(value = "id", required = false) Integer id) {
+	public QuarterFinalCategoryDTO parseQuarterFinal(@RequestParam(value = "id", required = false) Integer id) throws Exception {
 		id = resolveId(id);
 
 		// TODO reuse saved competition
@@ -54,7 +54,7 @@ public class ParserRessource {
 	}
 
 	@GetMapping("/api/testround")
-	public TestroundCategoryDTO parseTestRound(@RequestParam(value = "id", required = false) Integer id) {
+	public TestroundCategoryDTO parseTestRound(@RequestParam(value = "id", required = false) Integer id) throws Exception {
 		id = resolveId(id);
 
 		// TODO reuse saved competition
@@ -62,7 +62,7 @@ public class ParserRessource {
 		return TestroundCategoryDTO.of(parser.parseTestRound(id));
 	}
 
-	private Integer resolveId(Integer id) {
+	private Integer resolveId(Integer id) throws Exception {
 		if (id == null) {
 			var competitions = parser.getOwnCompetitionIds();
 			if (!competitions.isEmpty()) {

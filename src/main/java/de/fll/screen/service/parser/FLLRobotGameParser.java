@@ -21,6 +21,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,8 @@ public class FLLRobotGameParser implements Parser {
 	private static final String COMPETITION_SELECTION_PATH_TEMPLATE = "/tournament%s?action=choose";
 	private static final String RG_PAIRING_PATH = "/tournament?tournament=";
 	private static final boolean PARSE_PAIRINGS = false;
+
+	private static final Logger log = LoggerFactory.getLogger(FLLRobotGameParser.class);
 
 	@Value("${fll.username}")
 	private String username;
@@ -58,16 +61,16 @@ public class FLLRobotGameParser implements Parser {
 		this.competitionRepository = competitionRepository;
 	}
 
-	public Competition parse(Competition competition, int id) {
+	public Competition parse(Competition competition, int id) throws Exception {
 		return parse(competition, id, username, password);
 	}
 
-	public Category parseTestRound(int id) {
+	public Category parseTestRound(int id) throws Exception {
 		return parseTestRound(id, username, password);
 		// TODO: Log webrequests (start and end) for better debugging
 	}
 
-	public Category parseTestRound(int id, String username, String password) {
+	public Category parseTestRound(int id, String username, String password) throws Exception {
 		/// TODO quick hack at competiton, make this a lot better please!!!!
 		boolean loginNeeded = !cookieManagers.containsKey(username);
 		CookieManager cookieManager = cookieManagers.computeIfAbsent(username, k -> new CookieManager());
@@ -80,24 +83,22 @@ public class FLLRobotGameParser implements Parser {
 			requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH + id), username, password);
 		}
 
-		String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
-		if (rawPairingPage == null) {
+		Document paringPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
+		if (paringPage == null) {
 			return null; // SOMETHING WENT WRONG WHILE GETTING DATA
 		}
-		return testroundPairings(Jsoup.parse(rawPairingPage));
+		return testroundPairings(paringPage);
 	}
 
-	public List<String> getOwnCompetitionIds() {
+	public List<String> getOwnCompetitionIds() throws Exception {
 		return getOwnCompetitionIds(username, password);
 	}
 
 	@Override
-	public List<String> getOwnCompetitionIds(String user, String password) {
-
+	public List<String> getOwnCompetitionIds(String user, String password) throws Exception {
 		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
-		var page = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(makeTournamentSelectionPath()), user, password);
-		var doc = Jsoup.parse(page);
+		var doc = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(makeTournamentSelectionPath()), user, password);
 		return doc.selectFirst(".link-set")
 				.select("li")
 				.stream()
@@ -115,7 +116,7 @@ public class FLLRobotGameParser implements Parser {
 
 	@Nonnull
 	@Override
-	public Competition parse(@Nullable Competition competition, int id, String user, String password) {
+	public Competition parse(@Nullable Competition competition, int id, String user, String password) throws Exception{
 		boolean loginNeeded = !cookieManagers.containsKey(user);
 		CookieManager cookieManager = cookieManagers.computeIfAbsent(user, k -> new CookieManager());
 
@@ -126,36 +127,24 @@ public class FLLRobotGameParser implements Parser {
 
 		// Beim Schiri Login hat der Redirect nicht funktioniert, daher nutzten wir den bestehendne Cookie um direkt auf die Seite zu navigieren.
 		// TODO: Erkennen wann der Cookie abläuft und dann erneut anmelden.
-		String rawScorePage;
+		Document pageDocument;
 		if (!loginNeeded) {
-			rawScorePage = requestPageAfterLogin(cookieManager, makeURL(RG_SCORE_PATH + id));
+			pageDocument = requestPageAfterLogin(cookieManager, makeURL(RG_SCORE_PATH + id));
 		} else {
-			rawScorePage = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH + id), user, password);
+			pageDocument = requestLogin(cookieManager, makeURL(LOGIN_PATH), makeURL(RG_SCORE_PATH + id), user, password);
 		}
-		if (rawScorePage == null) {
+		if (pageDocument == null) {
 			return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
-		}
-
-		Document pageDocument = Jsoup.parse(rawScorePage);
-
-		// Check if the result is reasonable (i.e. not a login page (wrong credentials) or choose competition page)
-		if (getPageTitle(pageDocument).equals("Wettbewerb auswählen")) {
-			// Load scores page again
-			rawScorePage = requestPageAfterLogin(cookieManager, makeURL(RG_SCORE_PATH + id));
-			if (rawScorePage == null) {
-				return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
-			}
-			pageDocument = Jsoup.parse(rawScorePage);
 		}
 
 		updateCompetition(pageDocument, competition);
 
 		if (PARSE_PAIRINGS) {
-			String rawPairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
-			if (rawPairingPage == null) {
+			Document pairingPage = requestPageAfterLogin(cookieManager, makeURL(RG_PAIRING_PATH));
+			if (pairingPage == null) {
 				return competition; // SOMETHING WENT WRONG WHILE GETTING DATA
 			}
-			updatePairings(Jsoup.parse(rawPairingPage), competition);
+			updatePairings(pairingPage, competition);
 		}
 
 		if (competitionRepository != null) {
@@ -164,10 +153,15 @@ public class FLLRobotGameParser implements Parser {
 		return competition;
 	}
 
-	private String requestLogin(CookieManager cookieManager, String url, String targetUrl, String user, String password) {
-		return executeRequest(cookieManager, url,
+	private Document requestLogin(CookieManager cookieManager, String url, String targetUrl, String user, String password) throws Exception {
+		var document = executeRequest(cookieManager, url,
 				b -> b.header("Content-Type", "application/x-www-form-urlencoded"),
 				b -> b.POST(HttpRequest.BodyPublishers.ofString(getLoginBody(user, password, targetUrl))));
+		if (getPageTitle(document).equals("Wettbewerb auswählen")) {
+			// Redirect failed, try again
+			return executeRequest(cookieManager, targetUrl, HttpRequest.Builder::GET);
+		}
+		return document;
 	}
 
 	private String getLoginBody(String user, String pwd, String targetUrl) {
@@ -181,12 +175,13 @@ public class FLLRobotGameParser implements Parser {
 				+ "&password=" + pwd;
 	}
 
-	private String requestPageAfterLogin(CookieManager cookieManager, String tournamentUrl) {
+	private Document requestPageAfterLogin(CookieManager cookieManager, String tournamentUrl) throws Exception {
 		return executeRequest(cookieManager, tournamentUrl, HttpRequest.Builder::GET);
+		// Re-validate session when unauthorized
 	}
 
 	@SafeVarargs
-	private String executeRequest(CookieManager cookieManager, String uri, UnaryOperator<HttpRequest.Builder>... modifiers) {
+	private Document executeRequest(CookieManager cookieManager, String uri, UnaryOperator<HttpRequest.Builder>... modifiers) throws Exception {
 		try (HttpClient client = createHttpClient(cookieManager)) {
 			var requestBuilder = HttpRequest.newBuilder(new URI(uri));
 			for (UnaryOperator<HttpRequest.Builder> modifier : modifiers) {
@@ -194,10 +189,17 @@ public class FLLRobotGameParser implements Parser {
 			}
 			HttpRequest request = requestBuilder.build();
 			HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-			return send.body();
-		} catch (IOException | InterruptedException | URISyntaxException e) {
-			LoggerFactory.getLogger(FLLRobotGameParser.class).error(e.getMessage(), e);
-			return null;
+			String response = send.body();
+			Document document = Jsoup.parse(response);
+
+			if (!document.select("#tl_login_216").isEmpty()) {
+				log.error("Anmeldung fehlgeschlagen");
+				return null;
+			}
+
+			// TODO unauthorized, login again
+
+			return document;
 		}
 	}
 
@@ -300,7 +302,7 @@ public class FLLRobotGameParser implements Parser {
 		return 0; // TODO: Auto-Detect Round to be used in smart generation
 	}
 
-	private Category testroundPairings(Document document) {
+	private Category testroundPairings(Document document) throws Exception {
 		Category category = new Category();
 
 		Element collapseSet = document.selectFirst(".collaps-set");
@@ -313,15 +315,9 @@ public class FLLRobotGameParser implements Parser {
 
 		Set<Team> teams = Collections.synchronizedSet(new HashSet<>());
 		List<CompletableFuture<Void>> teamFutures = new ArrayList<>();
-		matches.forEach(e -> {
-			var a = e.select("a");
+		for (Element match : matches) {
+			var a = match.select("a");
 			if (a.size() == 1) {
-				// FREE SLOT DETECTED
-				System.out.println(a.getFirst().text()
-						+ " ||||| "
-						+ "FREIER SLOT (HAT KEINE PKTE)");
-				var link = extractLink(a.getFirst());
-
 				teamFutures.add(requestTestroundScore(a.getFirst(), teams));
 			} else {
 				var teamLink1 = a.get(0);
@@ -330,7 +326,7 @@ public class FLLRobotGameParser implements Parser {
 				teamFutures.add(requestTestroundScore(teamLink1, teams));
 				teamFutures.add(requestTestroundScore(teamLink2, teams));
 			}
-		});
+		}
 
 		CompletableFuture.allOf(teamFutures.toArray(new CompletableFuture[0])).join();
 		category.setTeams(teams);
@@ -338,8 +334,20 @@ public class FLLRobotGameParser implements Parser {
 	}
 
 	private CompletableFuture<Void> requestTestroundScore(Element teamLink, Set<Team> teams) {
-		return CompletableFuture.supplyAsync(() -> getTestroundScore(extractLink(teamLink), extractTeamnameFromTestround(teamLink), username))
-				.thenAccept(teams::add);
+		String teamName = extractTeamnameFromTestround(teamLink);
+		log.info("Requesting detailed evaluation form for testround of team: {}", teamName);
+		return CompletableFuture.supplyAsync(() -> {
+					try {
+						return getTestroundScore(extractLink(teamLink), teamName, username);
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				})
+				.thenAccept(teams::add)
+				.exceptionally(e -> {;
+					log.error("Failed to request testround score for team: " + teamName, e);
+					return null;
+				});
 	}
 
 	private String extractTeamnameFromTestround(Element a) {
@@ -378,10 +386,9 @@ public class FLLRobotGameParser implements Parser {
 		// TODO extract data from eval sheets
 	}
 
-	private Team getTestroundScore(String path, String teamName, String username) {
+	private Team getTestroundScore(String path, String teamName, String username) throws Exception {
 		Team team = new Team();
-		String match = requestPageAfterLogin(cookieManagers.get(username), environment + "/" + path);
-		var doc = Jsoup.parse(match);
+		Document doc = requestPageAfterLogin(cookieManagers.get(username), environment + "/" + path);
 
 		team.setName(teamName);
 
@@ -394,10 +401,9 @@ public class FLLRobotGameParser implements Parser {
 		return team;
 	}
 
-	private void checkMatch(String path, Competition competition, String username) {
-		String match = requestPageAfterLogin(cookieManagers.get(username), environment + "/" + path);
-		// System.out.println(match);
-		var core = Jsoup.parse(match);
+	private void checkMatch(String path, Competition competition, String username) throws Exception {
+		Document core = requestPageAfterLogin(cookieManagers.get(username), environment + "/" + path);
+
 		Element ratingForm = core.expectForm("#ratingForm");
 		Elements tasks = ratingForm.selectFirst(".collaps-set").select("li");
 		List<int[]> magicValues = new ArrayList<>();
@@ -440,7 +446,7 @@ public class FLLRobotGameParser implements Parser {
 		return element.attr("href");
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		local = LOCAL_DE;
 		var parser = new FLLRobotGameParser(null);
 		parser.environment = HOT_LIVE;
