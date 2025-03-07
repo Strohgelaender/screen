@@ -71,7 +71,7 @@ export default function TestroundPage() {
                         <tr>
                             <th className="px-4 py-2 border-b border-r border-white w-auto">Team</th>
                             <th className="px-4 py-2 border-r border-b border-white text-center w-60">TR</th>
-                            <th className="px-4 py-2 border-b border-white text-center w-40">Rank</th>
+                            <th className="px-4 py-2 border-b border-white text-center w-60">Rank</th>
                         </tr>
                     </thead>
                     <tbody>
