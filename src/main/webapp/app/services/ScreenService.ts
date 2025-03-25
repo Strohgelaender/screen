@@ -48,7 +48,10 @@ export async function loadScreenSettings(id: number): Promise<ScreenSettings> {
     return await response.json();
 }
 
-export async function fetchBackgroundImage(immageUrl: string): Promise<string | null> {
+export async function fetchBackgroundImage(immageUrl?: string): Promise<string | null> {
+    if (!immageUrl) {
+        return null;
+    }
     try {
         const response = await fetch(BASE_URL + immageUrl);
         const blob = await response.blob();

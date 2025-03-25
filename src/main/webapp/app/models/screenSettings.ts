@@ -13,3 +13,5 @@ export class ScreenSettings {
         this.teamsPerPage = teamsPerPage;
     }
 }
+
+export const dachScreenSettings = new ScreenSettings(0, false, [], '/images/Hintergrund.png', 8);

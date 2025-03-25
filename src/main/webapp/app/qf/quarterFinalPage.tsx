@@ -12,7 +12,7 @@ import ScreenContainer from '../components/ScreenContainer';
 
 export default function QuarterFinalPage() {
     const searchParams = useSearchParams();
-    const rawId = searchParams.get('id') ?? '348';
+    const rawId = searchParams.get('id') ?? '353';
     const id = parseInt(rawId, 10);
 
     const [settings, setSettings] = useState<ScreenSettings | null>(null);
